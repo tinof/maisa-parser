@@ -64,13 +64,13 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
     Esimerkiksi:
     ```bash
-    python src/maisa_parser.py ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
+    python src/maisa_parser.py ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/xxx/
     ```
 
     Jos suoritat skriptin datakansion sisältä, et tarvitse argumentteja:
 
     ```bash
-    cd ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
+    cd ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/xxx/
     python /polku/kohteeseen/maisa-parser/src/maisa_parser.py
     ```
 
