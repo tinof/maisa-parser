@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Data files (IMPORTANT: Do not commit patient data)
+# Ignore everything by default to be safe
+*
+!*/
+!.gitignore
+!*.py
+!*.md
+!*.txt
+!LICENSE
+
+# Explicitly ignore standard export folder names and zip files
+IHE_XDM/
+*.zip
+
+# Ignore specific sensitive extensions again just to be sure
+*.XML
+*.xml
+*.json
+
+# Allow specific example/test files if needed (uncomment if you add them)
+# !tests/fixtures/*.XML
+
+# OS files
+.DS_Store
