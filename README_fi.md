@@ -7,7 +7,7 @@
 
 Python-työkalu, joka jäsentää ja yhdistää HL7 CDA (Clinical Document Architecture) XML -tiedostoja, jotka on viety **Maisa**-asiakasportaalista (**Apotti**-järjestelmän käytössä Suomessa).
 
-Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`patient_history.json`), joka on optimoitu jatkoanalyysiä tai tekoälykäsittelyä varten.
+Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`patient_history.json`).
 
 ## 🚀 Ominaisuudet
 
@@ -123,8 +123,6 @@ Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
 5.  Etsi puretusta paketista kansio `IHE_XDM`, joka sisältää `DOC*.XML`-tiedostot.
 
 ## ⚠️ Vastuuvapauslauseke
-
-**Vastuuvapauslauseke:** Tämä ohjelmisto on tarkoitettu **vain koulutus- ja tietotarkoituksiin**. Se **ei** ole lääkinnällinen laite, eikä sitä tule käyttää diagnosointiin tai hoitoon. Kysy aina neuvoa terveydenhuollon ammattilaiselta. Tekijät eivät ole vastuussa jäsennysvirheistä tai tietojen esitystavasta.
 
 Käyttämällä tätä työkalua hyväksyt, että olet itse vastuussa omien terveystietojesi suojaamisesta.
 
