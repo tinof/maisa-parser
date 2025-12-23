@@ -1,7 +1,6 @@
+import json
 import os
 import sys
-import json
-import shutil
 
 # Add src to python path to import the parser
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
@@ -34,7 +33,7 @@ def run_tests():
 
     # Verify content
     try:
-        with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
+        with open(OUTPUT_FILE, encoding="utf-8") as f:
             data = json.load(f)
 
         # 1. Check Patient Profile
@@ -60,8 +59,8 @@ def run_tests():
         # 3. Check Lab Results
         labs = data.get("lab_results", [])
         found_hb = False
-        for l in labs:
-            if l["test_name"] == "Hemoglobin" and l["result_value"] == 145.0:
+        for lab in labs:
+            if lab["test_name"] == "Hemoglobin" and lab["result_value"] == 145.0:
                 found_hb = True
                 break
 

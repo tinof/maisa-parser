@@ -1,5 +1,10 @@
 # Maisa Clinical Data Parser
 
+[![CI](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 > [!NOTE]
 > 🇫🇮 **Suomenkielinen ohjeistus**: [Lue ohjeet suomeksi tästä](README_fi.md)
 
@@ -131,3 +136,7 @@ By using this tool, you agree that you are solely responsible for safeguarding y
 ## 🤝 Contributing
 
 Feel free to submit issues or pull requests if you find bugs or want to improve the parsing logic for different types of Maisa documents.
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

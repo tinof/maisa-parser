@@ -1,26 +1,31 @@
 # Maisa Clinical Data Parser
 
+[![CI](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 Python-työkalu, joka jäsentää ja yhdistää HL7 CDA (Clinical Document Architecture) XML -tiedostoja, jotka on viety **Maisa**-asiakasportaalista (**Apotti**-järjestelmän käytössä Suomessa).
 
 Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`patient_history.json`), joka on optimoitu jatkoanalyysiä tai tekoälykäsittelyä varten.
 
 ## 🚀 Ominaisuudet
 
-- **Yhdistetty Potilashistoria**: Yhdistää tiedot useista `DOC*.XML`-tiedostoista yhdeksi kronologiseksi aikajanaksi.
-- **Tekstimuotoinen Poiminta**: Poimii älykkäästi vapaamuotoiset kliiniset merkinnät ("Päivittäismerkinnät", "Hoidon tarpeen arviointi") ja suodattaa pois toistuvat rakenteiset listat (lääkitys, laboratoriotulokset) vähentääkseen kohinaa.
-- **Rakenteisen Tiedon Jäsentäminen**:
+- **Yhdistetty potilashistoria**: Yhdistää tiedot useista `DOC*.XML`-tiedostoista yhdeksi kronologiseksi aikajanaksi.
+- **Tekstimuotoinen poiminta**: Poimii älykkäästi vapaamuotoiset kliiniset merkinnät ("Päivittäismerkinnät", "Hoidon tarpeen arviointi") ja suodattaa pois toistuvat rakenteiset listat (lääkitys, laboratoriotulokset) vähentääkseen "kohinaa".
+- **Rakenteisen tiedon jäsentäminen**:
   - **Potilasprofiili**: Henkilötiedot, yhteystiedot.
   - **Lääkitys**: Voimassa oleva lääkelista ja historia päivämäärineen ja annostuksineen.
   - **Laboratoriotulokset**: Testien nimet, arvot, yksiköt ja aikaleimat.
   - **Diagnoosit**: Aktiiviset ongelmat ja ICD-10-koodit.
   - **Allergiat**: Tila ja aineet.
-- **Kopioiden Poisto**: Käsittelee päällekkäiset merkinnät useista dokumenteista.
-- **Puhdas Tuloste**: Tuottaa siistin `patient_history.json`-tiedoston.
+- **Kopioiden poisto**: Käsittelee päällekkäiset merkinnät useista dokumenteista.
+- **Selkeä lopputulos**: Tuottaa siistin `patient_history.json`-tiedoston.
 
 ## 🛠️ Esivaatimukset
 
 - Python 3.8 tai uudempi
-- `pip` (Python-pakettien asentaja)
+- `pip` (Python-pakettien hallinta)
 
 ## 📦 Asennus
 
@@ -35,28 +40,24 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
 ## 📖 Käyttö
 
-1.  **Vie Tiedot**: Lataa terveystietosi Maisasta ("Tilanneyhteenveto"). Kun olet purkanut ZIP-tiedoston, näet seuraavan kansion rakenteen:
+1.  **Vie tiedot**: Lataa terveystietosi Maisasta ("Tilanneyhteenveto"). Kun olet purkanut ZIP-tiedoston, näet seuraavan kansion rakenteen:
 
     ```
     Tilanneyhteenveto_PP_Kuukausi_VVVV/
     ├── HTML/
-    │   ├── IMAGES/
-    │   └── STYLE/
     ├── IHE_XDM/
     │   └── <PotilasKansio>/     ← Tämä kansio sisältää XML-tiedostot!
     │       ├── DOC0001.XML
-    │       ├── DOC0002.XML
     │       ├── ...
-    │       ├── METADATA.XML
-    │       └── STYLE.XSL
+    │       └── METADATA.XML
     ├── INDEX.HTM
-    └── README - Open for Instructions.TXT
+    └── README.TXT
     ```
 
-    > [!TÄRKEÄÄ]
-    > Osoita jäsennin **`IHE_XDM/<PotilasKansio>/`** -hakemistoon, joka sisältää `DOC*.XML`-tiedostot, **ei** puretun kansion juureen.
+    > [!IMPORTANT]
+    > Osoita jäsennin **`IHE_XDM/<PotilasKansio>/`** -hakemistoon, joka sisältää `DOC*.XML`-tiedostot. Älä osoita sitä puretun kansion juureen.
 
-2.  **Suorita Jäsennin**:
+2.  **Suorita jäsennin**:
 
     ```bash
     python src/maisa_parser.py /polku/kohteeseen/IHE_XDM/<PotilasKansio>/
@@ -64,19 +65,19 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
     Esimerkiksi:
     ```bash
-    python src/maisa_parser.py ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/xxx/
+    python src/maisa_parser.py ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
     ```
 
     Jos suoritat skriptin datakansion sisältä, et tarvitse argumentteja:
 
     ```bash
-    cd ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/xxx/
+    cd ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
     python /polku/kohteeseen/maisa-parser/src/maisa_parser.py
     ```
 
-3.  **Tarkastele Tulostetta**: Skripti luo `patient_history.json`-tiedoston nykyiseen työhakemistoosi.
+3.  **Tarkastele tulostetta**: Skripti luo `patient_history.json`-tiedoston nykyiseen työhakemistoosi.
 
-## 📂 Tulosteen Rakenne
+## 📂 Tulosteen rakenne
 
 Luotu JSON sisältää:
 
@@ -103,7 +104,7 @@ Luotu JSON sisältää:
 }
 ```
 
-## ⚠️ Tärkeä Huomautus Yksityisyydestä
+## ⚠️ Tärkeä huomautus yksityisyydestä
 
 Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
 - **Älä vie (commit)** XML-tietojasi tai luotua JSON-tulostetta GitHubiin tai mihinkään julkiseen repositorioon.
@@ -113,10 +114,10 @@ Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
 ## 📥 Kuinka viedä tietosi Maisasta
 
 1.  Kirjaudu sisään osoitteessa **[Maisa.fi](https://www.maisa.fi)**.
-2.  Mene valikkoon **Valikko** > **Tietojen jakaminen ja lataaminen** > **Lataa tilannekatsaus**. (https://www.maisa.fi/maisa/app/sharing-hub/)
+2.  Mene valikkoon **Valikko** > **Tietojen jakaminen ja lataaminen** > **Lataa tilannekatsaus**.
 3.  Valitse **"Lataa kaikki"** (tai vain haluamasi tiedot).
 4.  Lataa ZIP-tiedosto ja pura se.
-5.  Näet kansion `IHE_XDM`, joka sisältää `DOC*.XML`-tiedostot. Tämä on kansio, jota käsitellään.
+5.  Etsi puretusta paketista kansio `IHE_XDM`, joka sisältää `DOC*.XML`-tiedostot.
 
 ## ⚠️ Vastuuvapauslauseke
 
@@ -127,3 +128,7 @@ Käyttämällä tätä työkalua hyväksyt, että olet itse vastuussa omien terv
 ## 🤝 Osallistuminen
 
 Voit vapaasti lähettää virheraportteja (issues) tai pull request -pyyntöjä, jos löydät virheitä tai haluat parantaa jäsennyslogiikkaa erityyppisille Maisa-dokumenteille.
+
+## 📄 Lisenssi
+
+Tämä projekti on lisensoitu MIT-lisenssillä. Katso [LICENSE](LICENSE)-tiedosto lisätietoja varten.

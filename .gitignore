@@ -13,6 +13,8 @@ venv/
 !*.py
 !*.md
 !*.txt
+!*.toml
+!*.yml
 !LICENSE
 
 # Explicitly ignore standard export folder names and zip files

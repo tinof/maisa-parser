@@ -1,25 +1,44 @@
-import os
-import json
-import datetime
+"""
+Maisa Parser - HL7 CDA XML to JSON Converter
+
+Parses Clinical Document Architecture (CDA) XML files exported from the Maisa
+patient portal (used by Apotti in Finland) and consolidates them into a
+structured JSON format.
+"""
+
+from __future__ import annotations
+
 import argparse
+import datetime
+import json
+import os
+from typing import Any
+
 from lxml import etree
 
-# Namespaces
-NS = {
+# HL7 v3 XML Namespaces
+NS: dict[str, str] = {
     "v3": "urn:hl7-org:v3",
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
 }
 
 
-def parse_date(date_str):
-    """Parses HL7 date string (YYYYMMDDHHMMSS+ZZZZ) to ISO 8601 (YYYY-MM-DDTHH:mm:ss)."""
+def parse_date(date_str: str | None) -> str | None:
+    """
+    Parse an HL7 date string to ISO 8601 format.
+
+    Args:
+        date_str: HL7 formatted date (e.g., "YYYYMMDDHHMMSS+ZZZZ" or "YYYYMMDD").
+
+    Returns:
+        ISO 8601 formatted date string (e.g., "YYYY-MM-DDTHH:MM:SS"),
+        the original string if parsing fails, or None if input is None/empty.
+    """
     if not date_str:
         return None
     try:
-        # Basic cleaning of the string
-        cleaned_date = date_str.split("+")[
-            0
-        ]  # Remove timezone for simplicity if present, or handle it
+        # Remove timezone suffix if present
+        cleaned_date = date_str.split("+")[0]
 
         # Handle different precisions
         if len(cleaned_date) >= 14:
@@ -27,7 +46,6 @@ def parse_date(date_str):
         elif len(cleaned_date) == 8:
             dt = datetime.datetime.strptime(cleaned_date, "%Y%m%d")
         else:
-            # Fallback or partial date handling
             return date_str
 
         return dt.isoformat()
@@ -35,9 +53,18 @@ def parse_date(date_str):
         return date_str
 
 
-def extract_patient_profile(root):
-    """Extracts patient demographic information."""
-    profile = {}
+def extract_patient_profile(root: etree._Element) -> dict[str, Any]:
+    """
+    Extract patient demographic information from a CDA document.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        Dictionary containing patient demographics (name, DOB, gender,
+        address, phone, email, national_id).
+    """
+    profile: dict[str, Any] = {}
 
     # Paths (relative to root, using namespace)
     patient_role = root.xpath("//v3:recordTarget/v3:patientRole", namespaces=NS)
@@ -103,9 +130,20 @@ def extract_patient_profile(root):
     return profile
 
 
-def extract_allergies(root):
-    """Extracts allergies."""
-    allergies = []
+def extract_allergies(root: etree._Element) -> list[dict[str, str]]:
+    """
+    Extract allergy information from a CDA document.
+
+    Parses the Allergies section (LOINC code 48765-2) and handles
+    negationInd for "No Known Allergies" cases.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        List of allergy dictionaries with 'substance' and 'status' keys.
+    """
+    allergies: list[dict[str, str]] = []
     # 48765-2 is Allergies Document code
     section = root.xpath('//v3:section[v3:code[@code="48765-2"]]', namespaces=NS)
     if not section:
@@ -157,9 +195,21 @@ def extract_allergies(root):
     return allergies
 
 
-def extract_medications(root):
-    """Extracts medications."""
-    meds = []
+def extract_medications(root: etree._Element) -> list[dict[str, Any]]:
+    """
+    Extract medication information from a CDA document.
+
+    Parses substanceAdministration elements to extract drug names,
+    ATC codes, dosage instructions, and date ranges.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        List of medication dictionaries with name, ATC code, dosage,
+        dates, and status.
+    """
+    meds: list[dict[str, Any]] = []
     substances = root.xpath("//v3:substanceAdministration", namespaces=NS)
 
     for sub in substances:
@@ -236,16 +286,27 @@ def extract_medications(root):
                 "start_date": start_date,
                 "end_date": end_date,
                 "status": status,
-                "_raw_eff_high": end_date,  # Helper for sorting
             }
         )
 
     return meds
 
 
-def extract_lab_results(root):
-    """Extracts labs and vitals (mapped to schema lab_results)."""
-    results = []
+def extract_lab_results(root: etree._Element) -> list[dict[str, Any]]:
+    """
+    Extract laboratory results and vitals from a CDA document.
+
+    Parses observations with Physical Quantity (PQ) values to extract
+    test names, numeric results, units, and interpretations.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        List of lab result dictionaries with test_name, result_value,
+        unit, interpretation, and timestamp.
+    """
+    results: list[dict[str, Any]] = []
 
     # 30954-2 is 'Relevant diagnostic tests/laboratory data'
     # 8716-3 is 'Vital signs'
@@ -309,12 +370,19 @@ def extract_lab_results(root):
     return results
 
 
-def extract_diagnoses(root):
-    """Extracts diagnoses."""
-    # Look for Act, classCode=ACT, statusCode=active
-    # In 'Problem list' 11450-4
+def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
+    """
+    Extract active diagnoses from a CDA document.
 
-    diagnoses = []
+    Parses ACT elements with active status to find ICD-10 coded diagnoses.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        List of diagnosis dictionaries with 'code' (ICD-10) and 'name'.
+    """
+    diagnoses: list[dict[str, Any]] = []
     acts = root.xpath(
         '//v3:act[@classCode="ACT"][v3:statusCode[@code="active"]]', namespaces=NS
     )
@@ -343,8 +411,22 @@ def extract_diagnoses(root):
     return diagnoses
 
 
-def extract_document_summary(file_path):
-    """Extracts document-level summary (Date, Author, Title, Narrative) from a CDA file."""
+def extract_document_summary(file_path: str) -> dict[str, Any] | None:
+    """
+    Extract document-level summary from a CDA file.
+
+    Parses a single CDA XML file to extract encounter metadata including
+    date, author/provider, document type, and narrative clinical notes.
+    Filters out structured sections (medications, labs, etc.) to focus
+    on free-text clinical notes.
+
+    Args:
+        file_path: Path to the CDA XML file.
+
+    Returns:
+        Dictionary with date, type, provider, notes, and source_file,
+        or None if parsing fails.
+    """
     try:
         tree = etree.parse(file_path)
         root = tree.getroot()
@@ -465,13 +547,27 @@ def extract_document_summary(file_path):
             "source_file": os.path.basename(file_path),
         }
 
+    except etree.XMLSyntaxError as e:
+        print(f"XML syntax error in {file_path}: {e}")
+        return None
     except Exception as e:
         print(f"Error extracting summary from {file_path}: {e}")
         return None
 
 
-def process_files(data_dir, output_file, summary_file):
-    """Processes generic CDA XML files."""
+def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
+    """
+    Process all CDA XML files in a directory and generate consolidated JSON.
+
+    Reads the summary file (default: DOC0001.XML) for structured clinical
+    data (patient profile, medications, labs, diagnoses, allergies), then
+    scans all DOC*.XML files for encounter narratives.
+
+    Args:
+        data_dir: Directory containing the XML files.
+        output_file: Path for the output JSON file.
+        summary_file: Name of the summary XML file (e.g., "DOC0001.XML").
+    """
     files = [f for f in os.listdir(data_dir) if f.upper().endswith(".XML")]
     files.sort()
 
