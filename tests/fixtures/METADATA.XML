@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Metadata xmlns="urn:ihe:iti:xds-b:2007">
+  <!-- This is a synthetic METADATA.XML file for testing purposes -->
+  <params>
+    <patientId>123456789</patientId>
+  </params>
+</Metadata>

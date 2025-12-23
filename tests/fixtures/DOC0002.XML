@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ClinicalDocument xmlns="urn:hl7-org:v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <title>Lääkärin vastaanottokäynti</title>
+    <effectiveTime value="20230615090000+0300"/>
+    <documentationOf>
+        <serviceEvent>
+            <effectiveTime>
+                <low value="20230615090000"/>
+            </effectiveTime>
+        </serviceEvent>
+    </documentationOf>
+    <author>
+        <assignedAuthor>
+            <assignedPerson>
+                <name>Dr. House</name>
+            </assignedPerson>
+        </assignedAuthor>
+    </author>
+
+    <component>
+        <structuredBody>
+            <section>
+                <title>Esitiedot</title>
+                <text>Patient complains of leg pain.</text>
+            </section>
+            <section>
+                <title>Status</title>
+                <text>Right leg is swollen.</text>
+            </section>
+            <section>
+                <title>Suunnitelma</title>
+                <text>Prescribed rest and ice.</text>
+            </section>
+            <!-- Excluded section should be ignored -->
+            <section>
+                <title>Lääkkeet</title>
+                <text>List of meds...</text>
+            </section>
+        </structuredBody>
+    </component>
+</ClinicalDocument>

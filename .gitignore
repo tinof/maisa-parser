@@ -26,8 +26,8 @@ IHE_XDM/
 *.xml
 *.json
 
-# Allow specific example/test files if needed (uncomment if you add them)
-# !tests/fixtures/*.XML
+# Allow test fixtures (mock data only - no real patient data)
+!tests/fixtures/*.XML
 
 # OS files
 .DS_Store

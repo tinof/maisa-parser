@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ClinicalDocument xmlns="urn:hl7-org:v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <title>Summarization of Episode Note</title>
+    <effectiveTime value="20231001120000+0200"/>
+    <recordTarget>
+        <patientRole>
+            <id root="1.2.246.21" extension="123456-789A"/>
+            <addr>
+                <streetAddressLine>Testikatu 1</streetAddressLine>
+                <city>Helsinki</city>
+            </addr>
+            <telecom value="tel:+358501234567"/>
+            <patient>
+                <name>
+                    <given>John</given>
+                    <family>Doe</family>
+                </name>
+                <administrativeGenderCode code="M" displayName="Male"/>
+                <birthTime value="19800101"/>
+            </patient>
+        </patientRole>
+    </recordTarget>
+
+    <!-- Component Body -->
+    <component>
+        <structuredBody>
+            
+            <!-- Allergies Section -->
+            <section>
+                <code code="48765-2" codeSystem="2.16.840.1.113883.6.1"/>
+                <title>Allergies</title>
+                <entry>
+                    <act classCode="ACT" moodCode="EVN">
+                        <entryRelationship typeCode="SUBJ">
+                            <observation classCode="OBS" moodCode="EVN">
+                                <code code="ASSERTION" codeSystem="2.16.840.1.113883.5.4"/>
+                                <statusCode code="completed"/>
+                                <value xsi:type="CD" code="419199007" displayName="Allergy to substance"/>
+                                <participant typeCode="CSM">
+                                    <participantRole classCode="MANU">
+                                        <playingEntity classCode="MMAT">
+                                            <code code="70618" codeSystem="2.16.840.1.113883.6.88" displayName="Peanuts"/>
+                                        </playingEntity>
+                                    </participantRole>
+                                </participant>
+                                <entryRelationship typeCode="MFST">
+                                   <!-- Simplified structure for parser -->
+                                   <observation>
+                                       <value xsi:type="CD" displayName="Peanuts"/> 
+                                   </observation>
+                                </entryRelationship>
+                            </observation>
+                        </entryRelationship>
+                    </act>
+                </entry>
+            </section>
+
+            <!-- Medications Section -->
+            <section>
+                <title>Lääkkeet</title>
+                <entry>
+                    <substanceAdministration classCode="SBADM" moodCode="EVN">
+                        <text><reference value="#med1"/></text>
+                        <statusCode code="active"/>
+                        <effectiveTime xsi:type="IVL_TS">
+                            <low value="20230101"/>
+                            <high value="20231231"/>
+                        </effectiveTime>
+                        <consumable>
+                            <manufacturedProduct>
+                                <manufacturedMaterial>
+                                    <code code="12345" displayName="Burana 400mg">
+                                        <originalText><reference value="#med1"/></originalText>
+                                        <translation code="M01AE01" codeSystemName="WHO ATC" displayName="Ibuprofen"/>
+                                    </code>
+                                </manufacturedMaterial>
+                            </manufacturedProduct>
+                        </consumable>
+                    </substanceAdministration>
+                </entry>
+                <text>
+                    <content ID="med1">Burana 400mg table</content>
+                </text>
+            </section>
+
+            <!-- Lab Results -->
+            <section>
+                <title>Tulokset</title>
+                <entry>
+                    <organizer classCode="BATTERY" moodCode="EVN">
+                        <component>
+                            <observation classCode="OBS" moodCode="EVN">
+                                <code code="12345-6" displayName="Hemoglobin"/>
+                                <statusCode code="completed"/>
+                                <effectiveTime value="20230915100000"/>
+                                <value xsi:type="PQ" value="145" unit="g/l"/>
+                                <interpretationCode code="N"/>
+                            </observation>
+                        </component>
+                    </organizer>
+                </entry>
+            </section>
+
+        </structuredBody>
+    </component>
+</ClinicalDocument>
