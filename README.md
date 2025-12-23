@@ -20,8 +20,11 @@ It extracts key health information into a structured, machine-readable JSON form
 - **Structured Data Parsing**:
   - **Patient Profile**: Demographics, contact info.
   - **Medications**: Active list and history with dates and dosage.
-  - **Lab Results**: test names, values, units, and timestamps.
-  - **Diagnoses**: Active problems and ICD-10 codes.
+  - **Lab Results**: Test names, values, units, and timestamps.
+  - **Diagnoses**: Active problems with ICD-10/SNOMED codes (from Problem List section).
+  - **Procedures**: Medical procedures with Finnish national codes (lumbar puncture, ENMG, OCT, etc.).
+  - **Immunizations**: Vaccination records with ATC codes and dates.
+  - **Social History**: Tobacco use, alcohol consumption status.
   - **Allergies**: Status and substances.
 - **Deduplication**: Handles duplicate entries across multiple documents.
 - **Clean Output**: Produces a clean `patient_history.json` file.
@@ -91,14 +94,33 @@ The generated JSON contains:
 
 ```json
 {
-  "patient_profile": { ... },
+  "patient_profile": {
+    "full_name": "...",
+    "dob": "1990-01-15T00:00:00",
+    "gender": "...",
+    "address": "...",
+    "phone": "...",
+    "email": "..."
+  },
   "clinical_summary": {
     "allergies": [ ... ],
     "active_medications": [ ... ],
     "medication_history": [ ... ]
   },
+  "diagnoses": [
+    { "code": "G35", "code_system": "ICD10", "display_name": "Multiple sclerosis", "status": "active" }
+  ],
+  "procedures": [
+    { "code": "TAB00", "name": "Lumbar puncture", "date": "2023-05-10T00:00:00" }
+  ],
+  "immunizations": [
+    { "vaccine_name": "COVID-19 Pfizer", "vaccine_code": "J07BN01", "date": "2021-08-13T00:00:00" }
+  ],
+  "social_history": {
+    "tobacco_smoking": "Ex-smoker",
+    "alcohol": "Current drinker"
+  },
   "lab_results": [ ... ],
-  "diagnoses": [ ... ],
   "encounters": [
     {
       "date": "2024-10-10T12:00:00",
@@ -106,8 +128,7 @@ The generated JSON contains:
       "provider": "Dr. Name",
       "notes": "Narrative text of the visit...",
       "source_file": "DOC0018.XML"
-    },
-    ...
+    }
   ]
 }
 ```

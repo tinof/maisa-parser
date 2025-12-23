@@ -372,43 +372,309 @@ def extract_lab_results(root: etree._Element) -> list[dict[str, Any]]:
 
 def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
     """
-    Extract active diagnoses from a CDA document.
+    Extract diagnoses from a CDA document.
 
-    Parses ACT elements with active status to find ICD-10 coded diagnoses.
+    Parses the Problem List section (LOINC 11450-4) to find diagnoses.
+    The actual diagnosis is nested inside act/entryRelationship/observation/value.
 
     Args:
         root: The root element of the parsed CDA XML document.
 
     Returns:
-        List of diagnosis dictionaries with 'code' (ICD-10) and 'name'.
+        List of diagnosis dictionaries with code, display_name, status, and onset_date.
     """
     diagnoses: list[dict[str, Any]] = []
-    acts = root.xpath(
-        '//v3:act[@classCode="ACT"][v3:statusCode[@code="active"]]', namespaces=NS
-    )
 
-    for act in acts:
-        # Look for observation inside with ICD-10
-        obs = act.xpath(".//v3:observation", namespaces=NS)
-        for o in obs:
-            # Value should be CD (Coded Descriptor)
-            vals = o.xpath('v3:value[@xsi:type="CD"]', namespaces=NS)
-            for v in vals:
-                code_sys = v.get("codeSystemName")
-                if code_sys and "ICD-10" in code_sys:
-                    # Found one
-                    diagnoses.append(
-                        {
-                            "code": v.get("code"),
-                            "name": v.get("displayName")
-                            or v.xpath(
+    # Primary: Problem List section (11450-4)
+    section = root.xpath('//v3:section[v3:code[@code="11450-4"]]', namespaces=NS)
+
+    if section:
+        # Look for entries containing act (Concern wrapper) -> observation (Problem)
+        entries = section[0].xpath(".//v3:entry/v3:act", namespaces=NS)
+
+        for act in entries:
+            # Get status from the act (concern status)
+            status_node = act.xpath("v3:statusCode", namespaces=NS)
+            status = status_node[0].get("code") if status_node else "unknown"
+
+            # The actual diagnosis is in entryRelationship/observation/value
+            observations = act.xpath(
+                "v3:entryRelationship/v3:observation", namespaces=NS
+            )
+
+            for obs in observations:
+                # Value contains the coded diagnosis (CD type)
+                vals = obs.xpath('v3:value[@xsi:type="CD"]', namespaces=NS)
+                for v in vals:
+                    code = v.get("code")
+                    code_system = v.get("codeSystemName") or ""
+
+                    # Accept ICD-10, SNOMED CT, or other diagnostic codes
+                    if code and ("ICD" in code_system or "SNOMED" in code_system or code):
+                        display_name = v.get("displayName")
+
+                        # Try to get name from originalText reference if not in displayName
+                        if not display_name:
+                            orig_ref = v.xpath(
                                 "v3:originalText/v3:reference/@value", namespaces=NS
-                            ),  # Tricky if reference
-                        }
-                    )
-                    # Reference handling for name similar to Meds if needed.
+                            )
+                            if orig_ref:
+                                ref_id = orig_ref[0].replace("#", "")
+                                text_node = root.xpath(
+                                    f'//*[@ID="{ref_id}"]', namespaces=NS
+                                )
+                                if text_node:
+                                    display_name = "".join(
+                                        text_node[0].itertext()
+                                    ).strip()
+
+                        # Get onset date if available
+                        onset_date = None
+                        eff_time = obs.xpath("v3:effectiveTime/v3:low", namespaces=NS)
+                        if eff_time:
+                            onset_date = parse_date(eff_time[0].get("value"))
+
+                        diagnoses.append(
+                            {
+                                "code": code,
+                                "code_system": code_system,
+                                "display_name": display_name or code,
+                                "status": status,
+                                "onset_date": onset_date,
+                            }
+                        )
+
+    # Fallback: Also check for diagnoses in other sections (legacy approach)
+    if not diagnoses:
+        acts = root.xpath(
+            '//v3:act[@classCode="ACT"][v3:statusCode[@code="active"]]', namespaces=NS
+        )
+        for act in acts:
+            obs_list = act.xpath(
+                ".//v3:entryRelationship/v3:observation", namespaces=NS
+            )
+            for obs in obs_list:
+                vals = obs.xpath('v3:value[@xsi:type="CD"]', namespaces=NS)
+                for v in vals:
+                    code_sys = v.get("codeSystemName") or ""
+                    if "ICD" in code_sys:
+                        diagnoses.append(
+                            {
+                                "code": v.get("code"),
+                                "code_system": code_sys,
+                                "display_name": v.get("displayName") or v.get("code"),
+                                "status": "active",
+                                "onset_date": None,
+                            }
+                        )
 
     return diagnoses
+
+
+def extract_procedures(root: etree._Element) -> list[dict[str, Any]]:
+    """
+    Extract procedures from a CDA document.
+
+    Parses the Procedures section (LOINC 47519-4) to find medical procedures.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        List of procedure dictionaries with code, name, and date.
+    """
+    procedures: list[dict[str, Any]] = []
+
+    # Procedures section (47519-4)
+    section = root.xpath('//v3:section[v3:code[@code="47519-4"]]', namespaces=NS)
+
+    if section:
+        proc_entries = section[0].xpath(".//v3:entry/v3:procedure", namespaces=NS)
+
+        for proc in proc_entries:
+            code_node = proc.xpath("v3:code", namespaces=NS)
+            if not code_node:
+                continue
+
+            code_el = code_node[0]
+            code = code_el.get("code")
+            code_system = code_el.get("codeSystemName") or ""
+            display_name = code_el.get("displayName")
+
+            # Try originalText if no displayName
+            if not display_name:
+                orig_text = code_el.xpath("v3:originalText", namespaces=NS)
+                if orig_text:
+                    ref = orig_text[0].xpath("v3:reference/@value", namespaces=NS)
+                    if ref:
+                        ref_id = ref[0].replace("#", "")
+                        text_node = root.xpath(f'//*[@ID="{ref_id}"]', namespaces=NS)
+                        if text_node:
+                            display_name = "".join(text_node[0].itertext()).strip()
+                    else:
+                        display_name = "".join(orig_text[0].itertext()).strip()
+
+            # Get procedure date
+            proc_date = None
+            eff_time = proc.xpath("v3:effectiveTime", namespaces=NS)
+            if eff_time:
+                # Could be single value or low/high
+                if eff_time[0].get("value"):
+                    proc_date = parse_date(eff_time[0].get("value"))
+                else:
+                    low = eff_time[0].xpath("v3:low", namespaces=NS)
+                    if low:
+                        proc_date = parse_date(low[0].get("value"))
+
+            # Status
+            status_node = proc.xpath("v3:statusCode", namespaces=NS)
+            status = status_node[0].get("code") if status_node else "completed"
+
+            if code:
+                procedures.append(
+                    {
+                        "code": code,
+                        "code_system": code_system,
+                        "name": display_name or code,
+                        "date": proc_date,
+                        "status": status,
+                    }
+                )
+
+    return procedures
+
+
+def extract_social_history(root: etree._Element) -> dict[str, Any]:
+    """
+    Extract social history from a CDA document.
+
+    Parses the Social History section (LOINC 29762-2) for tobacco, alcohol use, etc.
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        Dictionary with social history items (tobacco, alcohol, etc.).
+    """
+    social_history: dict[str, Any] = {}
+
+    # Social History section (29762-2)
+    section = root.xpath('//v3:section[v3:code[@code="29762-2"]]', namespaces=NS)
+
+    if section:
+        observations = section[0].xpath(".//v3:observation", namespaces=NS)
+
+        for obs in observations:
+            code_node = obs.xpath("v3:code", namespaces=NS)
+            if not code_node:
+                continue
+
+            code = code_node[0].get("code")
+            display_name = code_node[0].get("displayName") or ""
+
+            # Get value
+            value_node = obs.xpath("v3:value", namespaces=NS)
+            value = None
+            if value_node:
+                val = value_node[0]
+                value = val.get("displayName") or val.text or val.get("code")
+
+            # Map common LOINC codes to readable keys
+            # 72166-2 = Tobacco smoking status
+            # 11367-0 = History of tobacco use
+            # 11331-6 = History of alcohol use
+            if code == "72166-2" or "tobacco" in display_name.lower():
+                social_history["tobacco_smoking"] = value
+            elif code == "11367-0" or "smokeless" in display_name.lower():
+                social_history["smokeless_tobacco"] = value
+            elif code == "11331-6" or "alcohol" in display_name.lower():
+                social_history["alcohol"] = value
+            else:
+                # Generic entry
+                key = display_name.lower().replace(" ", "_") if display_name else code
+                social_history[key] = value
+
+    return social_history
+
+
+def extract_immunizations(root: etree._Element) -> list[dict[str, Any]]:
+    """
+    Extract immunizations from a CDA document.
+
+    Parses the Immunizations section (LOINC 11369-6).
+
+    Args:
+        root: The root element of the parsed CDA XML document.
+
+    Returns:
+        List of immunization dictionaries.
+    """
+    immunizations: list[dict[str, Any]] = []
+
+    # Immunizations section (11369-6)
+    section = root.xpath('//v3:section[v3:code[@code="11369-6"]]', namespaces=NS)
+
+    if section:
+        entries = section[0].xpath(".//v3:entry/v3:substanceAdministration", namespaces=NS)
+
+        for entry in entries:
+            # Get vaccine info from manufacturedMaterial
+            material = entry.xpath(
+                ".//v3:manufacturedProduct/v3:manufacturedMaterial/v3:code", namespaces=NS
+            )
+
+            vaccine_name = None
+            vaccine_code = None
+
+            if material:
+                code_el = material[0]
+                vaccine_code = code_el.get("code")
+                vaccine_name = code_el.get("displayName")
+
+                # Try translation for ATC code
+                translation = code_el.xpath(
+                    'v3:translation[@codeSystemName="WHO ATC"]', namespaces=NS
+                )
+                if translation:
+                    vaccine_code = translation[0].get("code") or vaccine_code
+
+                # Try originalText reference
+                if not vaccine_name:
+                    orig_ref = code_el.xpath(
+                        "v3:originalText/v3:reference/@value", namespaces=NS
+                    )
+                    if orig_ref:
+                        ref_id = orig_ref[0].replace("#", "")
+                        text_node = root.xpath(f'//*[@ID="{ref_id}"]', namespaces=NS)
+                        if text_node:
+                            vaccine_name = "".join(text_node[0].itertext()).strip()
+
+            # Get administration date
+            admin_date = None
+            eff_time = entry.xpath("v3:effectiveTime", namespaces=NS)
+            if eff_time:
+                if eff_time[0].get("value"):
+                    admin_date = parse_date(eff_time[0].get("value"))
+                else:
+                    low = eff_time[0].xpath("v3:low", namespaces=NS)
+                    if low:
+                        admin_date = parse_date(low[0].get("value"))
+
+            # Status
+            status_node = entry.xpath("v3:statusCode", namespaces=NS)
+            status = status_node[0].get("code") if status_node else "completed"
+
+            if vaccine_name or vaccine_code:
+                immunizations.append(
+                    {
+                        "vaccine_name": vaccine_name or vaccine_code,
+                        "vaccine_code": vaccine_code,
+                        "date": admin_date,
+                        "status": status,
+                    }
+                )
+
+    return immunizations
 
 
 def extract_document_summary(file_path: str) -> dict[str, Any] | None:
@@ -571,16 +837,19 @@ def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
     files = [f for f in os.listdir(data_dir) if f.upper().endswith(".XML")]
     files.sort()
 
-    combined_data = {
+    combined_data: dict[str, Any] = {
         "patient_profile": {},
         "clinical_summary": {
             "allergies": [],
             "active_medications": [],
             "medication_history": [],
         },
+        "diagnoses": [],
+        "procedures": [],
+        "immunizations": [],
+        "social_history": {},
         "lab_results": [],
         "encounters": [],
-        "diagnoses": [],
     }
 
     # Process Summary File (defaults to DOC0001.XML) specifically for the "Dashboard" data
@@ -605,6 +874,9 @@ def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
 
             combined_data["lab_results"] = extract_lab_results(root)
             combined_data["diagnoses"] = extract_diagnoses(root)
+            combined_data["procedures"] = extract_procedures(root)
+            combined_data["immunizations"] = extract_immunizations(root)
+            combined_data["social_history"] = extract_social_history(root)
 
         except Exception as e:
             print(f"Failed to process summary file {doc0001_path}: {e}")

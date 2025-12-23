@@ -17,7 +17,10 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
   - **Potilasprofiili**: Henkilötiedot, yhteystiedot.
   - **Lääkitys**: Voimassa oleva lääkelista ja historia päivämäärineen ja annostuksineen.
   - **Laboratoriotulokset**: Testien nimet, arvot, yksiköt ja aikaleimat.
-  - **Diagnoosit**: Aktiiviset ongelmat ja ICD-10-koodit.
+  - **Diagnoosit**: Aktiiviset ongelmat ICD-10/SNOMED-koodeilla (Ongelmalista-osiosta).
+  - **Toimenpiteet**: Lääketieteelliset toimenpiteet kansallisilla koodeilla (lannepisto, ENMG, OCT jne.).
+  - **Rokotukset**: Rokotustiedot ATC-koodeilla ja päivämäärillä.
+  - **Sosiaalinen historia**: Tupakointitiedot, alkoholinkäyttö.
   - **Allergiat**: Tila ja aineet.
 - **Kopioiden poisto**: Käsittelee päällekkäiset merkinnät useista dokumenteista.
 - **Selkeä lopputulos**: Tuottaa siistin `patient_history.json`-tiedoston.
