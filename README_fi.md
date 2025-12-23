@@ -113,8 +113,8 @@ Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
 ## 📥 Kuinka viedä tietosi Maisasta
 
 1.  Kirjaudu sisään osoitteessa **[Maisa.fi](https://www.maisa.fi)**.
-2.  Mene valikkoon **Valikko** > **Jakaminen** > **Lataa tietoni**.
-3.  Valitse **"Lucy XML"** (tai "Kaikki").
+2.  Mene valikkoon **Valikko** > **Tietojen jakaminen ja lataaminen** > **Lataa tilannekatsaus**. (https://www.maisa.fi/maisa/app/sharing-hub/)
+3.  Valitse **"Lataa kaikki"** (tai vain haluamasi tiedot).
 4.  Lataa ZIP-tiedosto ja pura se.
 5.  Näet kansion `IHE_XDM`, joka sisältää `DOC*.XML`-tiedostot. Tämä on kansio, jota käsitellään.
 
@@ -122,7 +122,7 @@ Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
 
 **Vastuuvapauslauseke:** Tämä ohjelmisto on tarkoitettu **vain koulutus- ja tietotarkoituksiin**. Se **ei** ole lääkinnällinen laite, eikä sitä tule käyttää diagnosointiin tai hoitoon. Kysy aina neuvoa terveydenhuollon ammattilaiselta. Tekijät eivät ole vastuussa jäsennysvirheistä tai tietojen esitystavasta.
 
-Käyttämällä tätä työkalua hyväksyt, että olet yksin vastuussa omien terveystietojesi suojaamisesta.
+Käyttämällä tätä työkalua hyväksyt, että olet itse vastuussa omien terveystietojesi suojaamisesta.
 
 ## 🤝 Osallistuminen
 
