@@ -11,7 +11,7 @@
 
 A Python tool to parse and consolidate HL7 CDA (Clinical Document Architecture) XML files exported from the **Maisa** patient portal (used by **Apotti** in Finland). 
 
-It extracts key health information into a structured, machine-readable JSON format (`patient_history.json`), optimized for further analysis or AI processing.
+It extracts key health information into a structured, machine-readable JSON format (`patient_history.json`).
 
 ## 🚀 Features
 
