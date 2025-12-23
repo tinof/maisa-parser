@@ -410,7 +410,9 @@ def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
                     code_system = v.get("codeSystemName") or ""
 
                     # Accept ICD-10, SNOMED CT, or other diagnostic codes
-                    if code and ("ICD" in code_system or "SNOMED" in code_system or code):
+                    if code and (
+                        "ICD" in code_system or "SNOMED" in code_system or code
+                    ):
                         display_name = v.get("displayName")
 
                         # Try to get name from originalText reference if not in displayName
@@ -615,12 +617,15 @@ def extract_immunizations(root: etree._Element) -> list[dict[str, Any]]:
     section = root.xpath('//v3:section[v3:code[@code="11369-6"]]', namespaces=NS)
 
     if section:
-        entries = section[0].xpath(".//v3:entry/v3:substanceAdministration", namespaces=NS)
+        entries = section[0].xpath(
+            ".//v3:entry/v3:substanceAdministration", namespaces=NS
+        )
 
         for entry in entries:
             # Get vaccine info from manufacturedMaterial
             material = entry.xpath(
-                ".//v3:manufacturedProduct/v3:manufacturedMaterial/v3:code", namespaces=NS
+                ".//v3:manufacturedProduct/v3:manufacturedMaterial/v3:code",
+                namespaces=NS,
             )
 
             vaccine_name = None
