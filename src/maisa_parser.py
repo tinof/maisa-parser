@@ -10,11 +10,37 @@ from __future__ import annotations
 
 import argparse
 import datetime
-import json
 import os
 from typing import Any
 
 from lxml import etree
+
+try:
+    from models import (
+        Allergy,
+        Diagnosis,
+        DocumentSummary,
+        HealthRecord,
+        Immunization,
+        LabResult,
+        Medication,
+        PatientProfile,
+        Procedure,
+        SocialHistory,
+    )
+except ImportError:
+    from .models import (
+        Allergy,
+        Diagnosis,
+        DocumentSummary,
+        HealthRecord,
+        Immunization,
+        LabResult,
+        Medication,
+        PatientProfile,
+        Procedure,
+        SocialHistory,
+    )
 
 # HL7 v3 XML Namespaces
 NS: dict[str, str] = {
@@ -53,7 +79,7 @@ def parse_date(date_str: str | None) -> str | None:
         return date_str
 
 
-def extract_patient_profile(root: etree._Element) -> dict[str, Any]:
+def extract_patient_profile(root: etree._Element) -> PatientProfile:
     """
     Extract patient demographic information from a CDA document.
 
@@ -127,10 +153,10 @@ def extract_patient_profile(root: etree._Element) -> dict[str, Any]:
             parse_date(birth_time[0].get("value")) if birth_time else "Unknown"
         )
 
-    return profile
+    return PatientProfile(**profile)
 
 
-def extract_allergies(root: etree._Element) -> list[dict[str, str]]:
+def extract_allergies(root: etree._Element) -> list[Allergy]:
     """
     Extract allergy information from a CDA document.
 
@@ -143,7 +169,7 @@ def extract_allergies(root: etree._Element) -> list[dict[str, str]]:
     Returns:
         List of allergy dictionaries with 'substance' and 'status' keys.
     """
-    allergies: list[dict[str, str]] = []
+    allergies: list[Allergy] = []
     # 48765-2 is Allergies Document code
     section = root.xpath('//v3:section[v3:code[@code="48765-2"]]', namespaces=NS)
     if not section:
@@ -190,12 +216,12 @@ def extract_allergies(root: etree._Element) -> list[dict[str, str]]:
         status = status_node[0].get("code") if status_node else "Unknown"
 
         if substance != "Unknown":
-            allergies.append({"substance": substance, "status": status})
+            allergies.append(Allergy(substance=substance, status=status))
 
     return allergies
 
 
-def extract_medications(root: etree._Element) -> list[dict[str, Any]]:
+def extract_medications(root: etree._Element) -> list[Medication]:
     """
     Extract medication information from a CDA document.
 
@@ -209,7 +235,7 @@ def extract_medications(root: etree._Element) -> list[dict[str, Any]]:
         List of medication dictionaries with name, ATC code, dosage,
         dates, and status.
     """
-    meds: list[dict[str, Any]] = []
+    meds: list[Medication] = []
     substances = root.xpath("//v3:substanceAdministration", namespaces=NS)
 
     for sub in substances:
@@ -243,6 +269,9 @@ def extract_medications(root: etree._Element) -> list[dict[str, Any]]:
             )  # ID is case sensitive usually, XML IDs are unique
             if text_node:
                 name = "".join(text_node[0].itertext()).strip()
+
+        if name == "Unknown" and drug_code_el.get("displayName"):
+            name = drug_code_el.get("displayName")
 
         if name == "Unknown" and atc_node and atc_node[0].get("displayName"):
             name = atc_node[0].get("displayName")
@@ -279,20 +308,20 @@ def extract_medications(root: etree._Element) -> list[dict[str, Any]]:
         status = status_node[0].get("code") if status_node else "Unknown"
 
         meds.append(
-            {
-                "name": name,
-                "atc_code": atc_code,
-                "dosage": dosage,
-                "start_date": start_date,
-                "end_date": end_date,
-                "status": status,
-            }
+            Medication(
+                name=name,
+                atc_code=atc_code,
+                dosage=dosage,
+                start_date=start_date,
+                end_date=end_date,
+                status=status,
+            )
         )
 
     return meds
 
 
-def extract_lab_results(root: etree._Element) -> list[dict[str, Any]]:
+def extract_lab_results(root: etree._Element) -> list[LabResult]:
     """
     Extract laboratory results and vitals from a CDA document.
 
@@ -306,7 +335,7 @@ def extract_lab_results(root: etree._Element) -> list[dict[str, Any]]:
         List of lab result dictionaries with test_name, result_value,
         unit, interpretation, and timestamp.
     """
-    results: list[dict[str, Any]] = []
+    results: list[LabResult] = []
 
     # 30954-2 is 'Relevant diagnostic tests/laboratory data'
     # 8716-3 is 'Vital signs'
@@ -357,20 +386,20 @@ def extract_lab_results(root: etree._Element) -> list[dict[str, Any]]:
         timestamp = parse_date(eff_time[0].get("value")) if eff_time else None
 
         results.append(
-            {
-                "timestamp": timestamp,
-                "test_name": test_name,
-                "result_value": float_val,
-                "unit": unit,
-                "interpretation": interpretation,
-                "reference_range": None,  # Complex to extract from range nodes usually, ignoring for now or todo
-            }
+            LabResult(
+                timestamp=timestamp,
+                test_name=test_name,
+                result_value=float_val,
+                unit=unit,
+                interpretation=interpretation,
+                reference_range=None,
+            )
         )
 
     return results
 
 
-def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
+def extract_diagnoses(root: etree._Element) -> list[Diagnosis]:
     """
     Extract diagnoses from a CDA document.
 
@@ -383,7 +412,7 @@ def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
     Returns:
         List of diagnosis dictionaries with code, display_name, status, and onset_date.
     """
-    diagnoses: list[dict[str, Any]] = []
+    diagnoses: list[Diagnosis] = []
 
     # Primary: Problem List section (11450-4)
     section = root.xpath('//v3:section[v3:code[@code="11450-4"]]', namespaces=NS)
@@ -437,13 +466,13 @@ def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
                             onset_date = parse_date(eff_time[0].get("value"))
 
                         diagnoses.append(
-                            {
-                                "code": code,
-                                "code_system": code_system,
-                                "display_name": display_name or code,
-                                "status": status,
-                                "onset_date": onset_date,
-                            }
+                            Diagnosis(
+                                code=code,
+                                code_system=code_system,
+                                display_name=display_name or code or "Unknown",
+                                status=status,
+                                onset_date=onset_date,
+                            )
                         )
 
     # Fallback: Also check for diagnoses in other sections (legacy approach)
@@ -461,19 +490,21 @@ def extract_diagnoses(root: etree._Element) -> list[dict[str, Any]]:
                     code_sys = v.get("codeSystemName") or ""
                     if "ICD" in code_sys:
                         diagnoses.append(
-                            {
-                                "code": v.get("code"),
-                                "code_system": code_sys,
-                                "display_name": v.get("displayName") or v.get("code"),
-                                "status": "active",
-                                "onset_date": None,
-                            }
+                            Diagnosis(
+                                code=v.get("code"),
+                                code_system=code_sys,
+                                display_name=v.get("displayName")
+                                or v.get("code")
+                                or "Unknown",
+                                status="active",
+                                onset_date=None,
+                            )
                         )
 
     return diagnoses
 
 
-def extract_procedures(root: etree._Element) -> list[dict[str, Any]]:
+def extract_procedures(root: etree._Element) -> list[Procedure]:
     """
     Extract procedures from a CDA document.
 
@@ -485,7 +516,7 @@ def extract_procedures(root: etree._Element) -> list[dict[str, Any]]:
     Returns:
         List of procedure dictionaries with code, name, and date.
     """
-    procedures: list[dict[str, Any]] = []
+    procedures: list[Procedure] = []
 
     # Procedures section (47519-4)
     section = root.xpath('//v3:section[v3:code[@code="47519-4"]]', namespaces=NS)
@@ -534,19 +565,19 @@ def extract_procedures(root: etree._Element) -> list[dict[str, Any]]:
 
             if code:
                 procedures.append(
-                    {
-                        "code": code,
-                        "code_system": code_system,
-                        "name": display_name or code,
-                        "date": proc_date,
-                        "status": status,
-                    }
+                    Procedure(
+                        code=code,
+                        code_system=code_system,
+                        name=display_name or code or "Unknown",
+                        date=proc_date,
+                        status=status,
+                    )
                 )
 
     return procedures
 
 
-def extract_social_history(root: etree._Element) -> dict[str, Any]:
+def extract_social_history(root: etree._Element) -> SocialHistory:
     """
     Extract social history from a CDA document.
 
@@ -596,10 +627,10 @@ def extract_social_history(root: etree._Element) -> dict[str, Any]:
                 key = display_name.lower().replace(" ", "_") if display_name else code
                 social_history[key] = value
 
-    return social_history
+    return SocialHistory(**social_history)
 
 
-def extract_immunizations(root: etree._Element) -> list[dict[str, Any]]:
+def extract_immunizations(root: etree._Element) -> list[Immunization]:
     """
     Extract immunizations from a CDA document.
 
@@ -611,7 +642,7 @@ def extract_immunizations(root: etree._Element) -> list[dict[str, Any]]:
     Returns:
         List of immunization dictionaries.
     """
-    immunizations: list[dict[str, Any]] = []
+    immunizations: list[Immunization] = []
 
     # Immunizations section (11369-6)
     section = root.xpath('//v3:section[v3:code[@code="11369-6"]]', namespaces=NS)
@@ -671,18 +702,18 @@ def extract_immunizations(root: etree._Element) -> list[dict[str, Any]]:
 
             if vaccine_name or vaccine_code:
                 immunizations.append(
-                    {
-                        "vaccine_name": vaccine_name or vaccine_code,
-                        "vaccine_code": vaccine_code,
-                        "date": admin_date,
-                        "status": status,
-                    }
+                    Immunization(
+                        vaccine_name=vaccine_name or vaccine_code or "Unknown",
+                        vaccine_code=vaccine_code,
+                        date=admin_date,
+                        status=status,
+                    )
                 )
 
     return immunizations
 
 
-def extract_document_summary(file_path: str) -> dict[str, Any] | None:
+def extract_document_summary(file_path: str) -> DocumentSummary | None:
     """
     Extract document-level summary from a CDA file.
 
@@ -810,13 +841,13 @@ def extract_document_summary(file_path: str) -> dict[str, Any] | None:
 
         notes = "\n".join(narrative_parts)
 
-        return {
-            "date": doc_date,
-            "type": title,
-            "provider": author_name,
-            "notes": notes,
-            "source_file": os.path.basename(file_path),
-        }
+        return DocumentSummary(
+            date=doc_date,
+            type=title,
+            provider=author_name,
+            notes=notes,
+            source_file=os.path.basename(file_path),
+        )
 
     except etree.XMLSyntaxError as e:
         print(f"XML syntax error in {file_path}: {e}")
@@ -842,20 +873,7 @@ def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
     files = [f for f in os.listdir(data_dir) if f.upper().endswith(".XML")]
     files.sort()
 
-    combined_data: dict[str, Any] = {
-        "patient_profile": {},
-        "clinical_summary": {
-            "allergies": [],
-            "active_medications": [],
-            "medication_history": [],
-        },
-        "diagnoses": [],
-        "procedures": [],
-        "immunizations": [],
-        "social_history": {},
-        "lab_results": [],
-        "encounters": [],
-    }
+    record = HealthRecord()
 
     # Process Summary File (defaults to DOC0001.XML) specifically for the "Dashboard" data
     doc0001_path = os.path.join(data_dir, summary_file)
@@ -865,30 +883,30 @@ def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
             tree = etree.parse(doc0001_path)
             root = tree.getroot()
 
-            combined_data["patient_profile"] = extract_patient_profile(root)
-            combined_data["clinical_summary"]["allergies"] = extract_allergies(root)
+            record.patient_profile = extract_patient_profile(root)
+            record.clinical_summary.allergies = extract_allergies(root)
 
             meds = extract_medications(root)
             # Separate active vs history (simple logic based on status or date)
             # Schema expects separation
             for m in meds:
-                if m["status"] == "active" or (m["end_date"] is None):
-                    combined_data["clinical_summary"]["active_medications"].append(m)
+                if m.status == "active" or (m.end_date is None):
+                    record.clinical_summary.active_medications.append(m)
                 else:
-                    combined_data["clinical_summary"]["medication_history"].append(m)
+                    record.clinical_summary.medication_history.append(m)
 
-            combined_data["lab_results"] = extract_lab_results(root)
-            combined_data["diagnoses"] = extract_diagnoses(root)
-            combined_data["procedures"] = extract_procedures(root)
-            combined_data["immunizations"] = extract_immunizations(root)
-            combined_data["social_history"] = extract_social_history(root)
+            record.lab_results = extract_lab_results(root)
+            record.diagnoses = extract_diagnoses(root)
+            record.procedures = extract_procedures(root)
+            record.immunizations = extract_immunizations(root)
+            record.social_history = extract_social_history(root)
 
         except Exception as e:
             print(f"Failed to process summary file {doc0001_path}: {e}")
 
     # Now iterate ALL files (including DOC0001 if desired, but primarily others) for Encounters/Notes
     print("Processing all files for Encounters/Notes...")
-    all_encounters = []
+    all_encounters: list[DocumentSummary] = []
 
     for f in files:
         f_path = os.path.join(data_dir, f)
@@ -897,15 +915,13 @@ def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
             all_encounters.append(doc_summary)
 
     # Sort encounters by date
-    all_encounters.sort(
-        key=lambda x: x["date"] if x["date"] else "1900-01-01", reverse=True
-    )
-    combined_data["encounters"] = all_encounters
+    all_encounters.sort(key=lambda x: x.date if x.date else "1900-01-01", reverse=True)
+    record.encounters = all_encounters
 
     # Write output
     try:
         with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(combined_data, f, indent=2, ensure_ascii=False)
+            f.write(record.model_dump_json(indent=2))
         print(f"Successfully generated {output_file}")
     except Exception as e:
         print(f"Error writing output file: {e}")
