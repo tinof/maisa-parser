@@ -24,6 +24,16 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
   - **Allergiat**: Tila ja aineet.
 - **Kopioiden poisto**: Käsittelee päällekkäiset merkinnät useista dokumenteista.
 - **Selkeä lopputulos**: Tuottaa siistin `patient_history.json`-tiedoston.
+- **🛡️ Tietoturva ja Luotettavuus**: Käyttää **Pydantic**-tietomalleja datan validointiin. Jos XML-data ei vastaa odotettua rakennetta, jäsennin havaitsee virheen heti.
+
+## 🛡️ Laadunvarmistus
+
+Tämä projekti noudattaa ammattimaisia ohjelmistokehityksen standardeja:
+
+- **Tyyppiturvallisuus**: Koodi on täysin tyypitetty ja tarkistettu `mypy`-työkalulla.
+- **Validointi**: Tiukat tietomallit takaavat datan eheyden.
+- **Tietoturva**: Automaattinen tietoturvaskannaus (`bandit`) haavoittuvuuksien havaitsemiseksi.
+- **CI/CD**: Automaattinen testausputki varmistaa toimivuuden eri Python-versioilla.
 
 ## 🛠️ Esivaatimukset
 
@@ -32,8 +42,8 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
 ## 📦 Asennus
 
-1.  Kloonaa tämä repositorio tai lataa skripti.
-2.  Asenna tarvittavat riippuvuudet:
+1. Kloonaa tämä repositorio tai lataa skripti.
+2. Asenna tarvittavat riippuvuudet:
 
     ```bash
     pip install -r requirements.txt
@@ -43,7 +53,7 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
 ## 📖 Käyttö
 
-1.  **Vie tiedot**: Lataa terveystietosi Maisasta ("Tilanneyhteenveto"). Kun olet purkanut ZIP-tiedoston, näet seuraavan kansion rakenteen:
+1. **Vie tiedot**: Lataa terveystietosi Maisasta ("Tilanneyhteenveto"). Kun olet purkanut ZIP-tiedoston, näet seuraavan kansion rakenteen:
 
     ```
     Tilanneyhteenveto_PP_Kuukausi_VVVV/
@@ -60,13 +70,14 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
     > [!IMPORTANT]
     > Osoita jäsennin **`IHE_XDM/<PotilasKansio>/`** -hakemistoon, joka sisältää `DOC*.XML`-tiedostot. Älä osoita sitä puretun kansion juureen.
 
-2.  **Suorita jäsennin**:
+2. **Suorita jäsennin**:
 
     ```bash
     python src/maisa_parser.py /polku/kohteeseen/IHE_XDM/<PotilasKansio>/
     ```
 
     Esimerkiksi:
+
     ```bash
     python src/maisa_parser.py ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
     ```
@@ -78,7 +89,7 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
     python /polku/kohteeseen/maisa-parser/src/maisa_parser.py
     ```
 
-3.  **Tarkastele tulostetta**: Skripti luo `patient_history.json`-tiedoston nykyiseen työhakemistoosi.
+3. **Tarkastele tulostetta**: Skripti luo `patient_history.json`-tiedoston nykyiseen työhakemistoosi.
 
 ## 📂 Tulosteen rakenne
 
@@ -110,17 +121,18 @@ Luotu JSON sisältää:
 ## ⚠️ Tärkeä huomautus yksityisyydestä
 
 Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
+
 - **Älä vie (commit)** XML-tietojasi tai luotua JSON-tulostetta GitHubiin tai mihinkään julkiseen repositorioon.
 - Mukana on `.gitignore`-tiedosto, joka auttaa estämään `.XML` ja `.json` -tiedostojen vahingossa tapahtuvan viennin.
 - Käsittele terveystietojasi aina huolellisesti.
 
 ## 📥 Kuinka viedä tietosi Maisasta
 
-1.  Kirjaudu sisään osoitteessa **[Maisa.fi](https://www.maisa.fi)**.
-2.  Mene valikkoon **Valikko** > **Tietojen jakaminen ja lataaminen** > **Lataa tilannekatsaus**.
-3.  Valitse **"Lataa kaikki"** (tai vain haluamasi tiedot).
-4.  Lataa ZIP-tiedosto ja pura se.
-5.  Etsi puretusta paketista kansio `IHE_XDM`, joka sisältää `DOC*.XML`-tiedostot.
+1. Kirjaudu sisään osoitteessa **[Maisa.fi](https://www.maisa.fi)**.
+2. Mene valikkoon **Valikko** > **Tietojen jakaminen ja lataaminen** > **Lataa tilannekatsaus**.
+3. Valitse **"Lataa kaikki"** (tai vain haluamasi tiedot).
+4. Lataa ZIP-tiedosto ja pura se.
+5. Etsi puretusta paketista kansio `IHE_XDM`, joka sisältää `DOC*.XML`-tiedostot.
 
 ## ⚠️ Vastuuvapauslauseke
 
