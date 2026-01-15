@@ -379,7 +379,9 @@ def extract_lab_results(root: etree._Element) -> list[LabResult]:
         interp_code = interp_node[0].get("code") if interp_node else None
 
         map_interp = {"H": "High", "L": "Low", "A": "Abnormal", "N": "Normal"}
-        interpretation = map_interp.get(interp_code, interp_code)
+        interpretation = (
+            map_interp.get(str(interp_code), interp_code) if interp_code else None
+        )
 
         # Timestamp
         eff_time = obs.xpath("v3:effectiveTime", namespaces=NS)
@@ -920,8 +922,8 @@ def process_files(data_dir: str, output_file: str, summary_file: str) -> None:
 
     # Write output
     try:
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(record.model_dump_json(indent=2))
+        with open(output_file, "w", encoding="utf-8") as out_f:
+            out_f.write(record.model_dump_json(indent=2))
         print(f"Successfully generated {output_file}")
     except Exception as e:
         print(f"Error writing output file: {e}")
