@@ -3,18 +3,18 @@ import os
 import sys
 import unittest
 
-# Add src to python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+# Add project root to python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from lxml import etree
 
-from maisa_parser import (
+from src.extractors import (
     extract_allergies,
     extract_diagnoses,
     extract_lab_results,
     extract_medications,
     extract_patient_profile,
 )
-from models import HealthRecord
+from src.models import HealthRecord
 
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "fixtures", "DOC_REALISTIC.XML")
 
