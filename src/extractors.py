@@ -5,6 +5,7 @@ Contains functions to parse specific sections of the CDA XML.
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -22,6 +23,8 @@ from .models import (
     SocialHistory,
 )
 from .utils import NS, parse_date
+
+logger = logging.getLogger(__name__)
 
 
 def extract_patient_profile(root: etree._Element) -> PatientProfile:
@@ -797,8 +800,8 @@ def extract_document_summary(file_path: str) -> DocumentSummary | None:
         )
 
     except etree.XMLSyntaxError as e:
-        print(f"XML syntax error in {file_path}: {e}")
+        logger.warning("XML syntax error in %s: %s", file_path, e)
         return None
     except Exception as e:
-        print(f"Error extracting summary from {file_path}: {e}")
+        logger.warning("Error extracting summary from %s: %s", file_path, e)
         return None

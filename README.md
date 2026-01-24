@@ -77,26 +77,76 @@ This project adheres to professional software standards suitable for handling he
     > [!IMPORTANT]
     > Point the parser to the **`IHE_XDM/<PatientFolder>/`** directory that contains the `DOC*.XML` files, **not** the root extracted folder.
 
-2. **Run the Parser**:
+2. **Install and Run**:
 
     ```bash
-    python src/maisa_parser.py /path/to/IHE_XDM/<PatientFolder>/
+    # Install
+    pip install -e .
+    
+    # Run with default settings (redacted privacy)
+    maisa-parser /path/to/IHE_XDM/<PatientFolder>/
+    
+    # Or run as module
+    python -m src.maisa_parser /path/to/data
     ```
 
     For example:
 
     ```bash
-    python src/maisa_parser.py ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
-    ```
-
-    If you run the script from inside the data folder, you don't need arguments:
-
-    ```bash
-    cd ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
-    python /path/to/maisa-parser/src/maisa_parser.py
+    maisa-parser ~/Downloads/Tilanneyhteenveto_16_joulu_2025/IHE_XDM/Ilias1/
     ```
 
 3. **View Output**: The script generates a `patient_history.json` file in your current working directory.
+
+## 🔐 Privacy & Data Safety
+
+This tool processes **sensitive personal health information (PHI)**.
+By default, output is **redacted** to reduce privacy risks.
+
+### Privacy Levels
+
+| Level | Command | What's Removed |
+|-------|---------|----------------|
+| `strict` | `--privacy strict` | All PII, provider names, notes dropped, dates → year-month |
+| `redacted` | *(default)* | Direct identifiers, DOB → age, provider names |
+| `full` | `--privacy full` | Nothing removed ⚠️ (includes henkilötunnus) |
+
+### Examples
+
+```bash
+# Default (redacted) - safe for most sharing
+maisa-parser /path/to/data -o health.json
+
+# Strict - safe for cloud LLM upload
+maisa-parser /path/to/data --privacy strict -o health.json
+
+# Full - personal backup only
+maisa-parser /path/to/data --privacy full -o health.json
+```
+
+### ⚠️ LLM Safety Warning
+
+> **Before uploading to ChatGPT, Claude, or other cloud LLMs:**
+> - Use `--privacy strict` mode
+> - Even with redaction, **free-text notes may contain identifying information**
+> - Consider using a **local LLM** (Ollama, LM Studio) for sensitive analysis
+
+### For Maximum Safety
+
+```bash
+maisa-parser /path/to/data --privacy strict -o health_safe.json
+```
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Unknown error |
+| 2 | Invalid arguments / input path not found |
+| 3 | XML parse error |
+| 4 | Data extraction error |
+| 5 | Output write error |
 
 ## 📂 Output Structure
 
@@ -118,17 +168,17 @@ The generated JSON contains:
     "medication_history": [ ... ]
   },
   "diagnoses": [
-    { "code": "G35", "code_system": "ICD10", "display_name": "Multiple sclerosis", "status": "active" }
+    { "code": "J45", "code_system": "ICD10", "display_name": "Asthma", "status": "active" }
   ],
   "procedures": [
-    { "code": "TAB00", "name": "Lumbar puncture", "date": "2023-05-10T00:00:00" }
+    { "code": "WX110", "name": "Blood pressure measurement", "date": "2023-05-10T00:00:00" }
   ],
   "immunizations": [
-    { "vaccine_name": "COVID-19 Pfizer", "vaccine_code": "J07BN01", "date": "2021-08-13T00:00:00" }
+    { "vaccine_name": "Influenza vaccine", "vaccine_code": "J07BB02", "date": "2023-10-15T00:00:00" }
   ],
   "social_history": {
-    "tobacco_smoking": "Ex-smoker",
-    "alcohol": "Current drinker"
+    "tobacco_smoking": "Never smoked",
+    "alcohol": "Non-drinker"
   },
   "lab_results": [ ... ],
   "encounters": [

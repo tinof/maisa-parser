@@ -8,6 +8,7 @@ class PatientProfile(BaseModel):
     national_id: str = "Unknown"
     gender: str = "Unknown"
     dob: str | None = None
+    age: int | None = None  # NEW: Computed when DOB is redacted
     address: str = ""
     phone: str = ""
     email: str = ""
