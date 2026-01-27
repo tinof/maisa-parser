@@ -79,6 +79,7 @@ Thumbs.db
 *.log
 .osgrep/
 .opencode/
+opencode/
 
 # =============================================================================
 # Project-specific exclusions
