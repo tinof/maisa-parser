@@ -6,13 +6,13 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 > [!NOTE]
-> 🇫🇮 **Suomenkielinen ohjeistus**: [Lue ohjeet suomeksi tästä](README_fi.md)
+> **Suomenkielinen ohjeistus**: [Lue ohjeet suomeksi tästä](README_fi.md)
 
 A Python tool to parse and consolidate HL7 CDA (Clinical Document Architecture) XML files exported from the **Maisa** patient portal (used by **Apotti** in Finland).
 
 It extracts key health information into a structured, machine-readable JSON format (`patient_history.json`).
 
-## 🚀 Features
+## Features
 
 - **Consolidated Patient History**: Merges data from multiple `DOC*.XML` files into a single chronological timeline.
 - **Narrative Extraction**: Intelligently extracts free-text clinical notes ("Päivittäismerkinnät", "Hoidon tarpeen arviointi") while filtering out redundant structured lists (medications, labs) to reduce noise.
@@ -27,9 +27,9 @@ It extracts key health information into a structured, machine-readable JSON form
   - **Allergies**: Status and substances.
 - **Deduplication**: Handles duplicate entries across multiple documents.
 - **Clean Output**: Produces a clean `patient_history.json` file.
-- **🛡️ Medical Data Safety**: Uses **Pydantic** models to strictly validate all parsed data. If the XML data doesn't match the expected schema, the parser catches it immediately rather than producing corrupt output.
+- **Medical Data Safety**: Uses **Pydantic** models to strictly validate all parsed data. If the XML data doesn't match the expected schema, the parser catches it immediately rather than producing corrupt output.
 
-## 🛡️ Safety & Quality Assurance
+## Safety & Quality Assurance
 
 This project adheres to professional software standards suitable for handling health data:
 
@@ -38,12 +38,12 @@ This project adheres to professional software standards suitable for handling he
 - **Security**: Automated security scanning using `bandit` to detect vulnerabilities.
 - **CI/CD**: Automated testing pipeline ensures the parser is reliable across Python versions.
 
-## 🛠️ Prerequisites
+## Prerequisites
 
 - Python 3.12 or higher
 - [uv](https://docs.astral.sh/uv/) (recommended) or `pip`
 
-## 📦 Installation
+## Installation
 
 ### Recommended: uv (isolated installation)
 
@@ -73,7 +73,7 @@ cd maisa-parser
 uv sync --all-extras
 ```
 
-## 📖 Usage
+## Usage
 
 1. **Export Data**: Download your health data dump from Maisa ("Tilanneyhteenveto" or similar export). After extracting the ZIP file, you'll see a folder structure like this:
 
@@ -111,7 +111,7 @@ uv sync --all-extras
 
 3. **View Output**: The script generates a `patient_history.json` file in your current working directory.
 
-## 🔐 Privacy & Data Safety
+## Privacy & Data Safety
 
 This tool processes **sensitive personal health information (PHI)**.
 By default, output is **redacted** to reduce privacy risks.
@@ -161,7 +161,7 @@ maisa-parser /path/to/data --privacy strict -o health_safe.json
 | 4 | Data extraction error |
 | 5 | Output write error |
 
-## 📂 Output Structure
+## Output Structure
 
 The generated JSON contains:
 
@@ -214,7 +214,7 @@ This tool processes **sensitive personal health information**.
 - A `.gitignore` file is included to help prevent accidental commits of `.XML` and `.json` files.
 - Always handle your medical data with care.
 
-## 📥 How to export your data from Maisa
+## How to export your data from Maisa
 
 1. Log in to **[Maisa.fi](https://www.maisa.fi)**.
 2. Go to **Menu** > **Sharing** > **Download My Record** (Lataa tietoni).
@@ -228,10 +228,10 @@ This tool processes **sensitive personal health information**.
 
 By using this tool, you agree that you are solely responsible for safeguarding your own medical data.
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to submit issues or pull requests if you find bugs or want to improve the parsing logic for different types of Maisa documents.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

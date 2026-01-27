@@ -1,7 +1,7 @@
 # Maisa Clinical Data Parser
 
 [![CI](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
@@ -11,7 +11,7 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
 ---
 
-## 🚨 TÄRKEÄ LÄÄKETIETEELLINEN VAROITUS
+## ⚠️ TÄRKEÄ LÄÄKETIETEELLINEN VAROITUS
 
 > [!CAUTION]
 > **Tekoäly (LLM) EI ole lääkäri, sairaanhoitaja tai terveydenhuollon ammattilainen.**
@@ -32,7 +32,7 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 
 ---
 
-## 🔐 Miten tämä työkalu suojaa yksityisyyttäsi
+## Miten tämä työkalu suojaa yksityisyyttäsi
 
 Tämä työkalu on suunniteltu **yksityisyys edellä** -periaatteella:
 
@@ -40,19 +40,19 @@ Tämä työkalu on suunniteltu **yksityisyys edellä** -periaatteella:
 
 | Ominaisuus | Kuvaus |
 |------------|--------|
-| 🏠 **Toimii täysin paikallisesti** | Kaikki käsittely tapahtuu omalla tietokoneellasi. Mitään dataa ei lähetetä mihinkään palvelimelle. |
-| 🔒 **Oletuksena anonymisoitu** | Henkilötiedot (nimi, henkilötunnus, osoite, puhelin, sähköposti) poistetaan automaattisesti tulosteesta. |
-| 📅 **Syntymäaika → ikä** | Tarkka syntymäpäivä muunnetaan iäksi, mikä riittää lääketieteelliseen kontekstiin. |
-| 👨‍⚕️ **Hoitajien nimet piilotettu** | Lääkäreiden ja hoitajien nimet poistetaan tulosteesta. |
-| ⚠️ **Selkeät varoitukset** | Työkalu varoittaa aina, jos tuloste sisältää arkaluonteista tietoa. |
+| **Toimii täysin paikallisesti** | Kaikki käsittely tapahtuu omalla tietokoneellasi. Mitään dataa ei lähetetä mihinkään palvelimelle. |
+| **Oletuksena anonymisoitu** | Henkilötiedot (nimi, henkilötunnus, osoite, puhelin, sähköposti) poistetaan automaattisesti tulosteesta. |
+| **Syntymäaika → ikä** | Tarkka syntymäpäivä muunnetaan iäksi, mikä riittää lääketieteelliseen kontekstiin. |
+| **Hoitajien nimet piilotettu** | Lääkäreiden ja hoitajien nimet poistetaan tulosteesta. |
+| **Selkeät varoitukset** | Työkalu varoittaa aina, jos tuloste sisältää arkaluonteista tietoa. |
 
 ### Mitä työkalu EI tee
 
 | Ominaisuus | Kuvaus |
 |------------|--------|
-| ❌ **Ei lähetä dataa** | Työkalu ei koskaan ota yhteyttä internettiin. Voit tarkistaa tämän lähdekoodista. |
-| ❌ **Ei tallenna dataa** | Työkalu ei tallenna mitään tietoja omiin tiedostoihinsa - vain sinun määrittelemääsi tulostetiedostoon. |
-| ❌ **Ei kerää analytiikkaa** | Ei telemetriaa, ei lokitusta, ei seurantaa. |
+| **Ei lähetä dataa** | Työkalu ei koskaan ota yhteyttä internettiin. Voit tarkistaa tämän lähdekoodista. |
+| **Ei tallenna dataa** | Työkalu ei tallenna mitään tietoja omiin tiedostoihinsa - vain sinun määrittelemääsi tulostetiedostoon. |
+| **Ei kerää analytiikkaa** | Ei telemetriaa, ei lokitusta, ei seurantaa. |
 
 ### Lähdekoodin avoimuus
 
@@ -65,7 +65,7 @@ Voit itse tarkistaa, mitä koodi tekee. Tämä on avoimen lähdekoodin etu.
 
 ---
 
-## 🤔 Miksi oma jäsennin eikä valmis HL7-kirjasto?
+## Miksi oma jäsennin eikä valmis HL7-kirjasto?
 
 Hyvä kysymys! HL7 CDA -standardille on olemassa valmiita kirjastoja, mutta:
 
@@ -91,7 +91,7 @@ Näin saamme kirjastojen edut ilman niiden haittoja.
 
 ---
 
-## 🚀 Ominaisuudet
+## Ominaisuudet
 
 - **Yhdistetty potilashistoria**: Yhdistää tiedot useista `DOC*.XML`-tiedostoista yhdeksi kronologiseksi aikajanaksi.
 - **Tekstimuotoinen poiminta**: Poimii älykkäästi vapaamuotoiset kliiniset merkinnät ("Päivittäismerkinnät", "Hoidon tarpeen arviointi") ja suodattaa pois toistuvat rakenteiset listat (lääkitys, laboratoriotulokset) vähentääkseen "kohinaa".
@@ -106,9 +106,9 @@ Näin saamme kirjastojen edut ilman niiden haittoja.
   - **Allergiat**: Tila ja aineet.
 - **Kopioiden poisto**: Käsittelee päällekkäiset merkinnät useista dokumenteista.
 - **Selkeä lopputulos**: Tuottaa siistin `patient_history.json`-tiedoston.
-- **🛡️ Tietoturva ja Luotettavuus**: Käyttää **Pydantic**-tietomalleja datan validointiin. Jos XML-data ei vastaa odotettua rakennetta, jäsennin havaitsee virheen heti.
+- **Tietoturva ja Luotettavuus**: Käyttää **Pydantic**-tietomalleja datan validointiin. Jos XML-data ei vastaa odotettua rakennetta, jäsennin havaitsee virheen heti.
 
-## 🛡️ Laadunvarmistus
+## Laadunvarmistus
 
 Tämä projekti noudattaa ammattimaisia ohjelmistokehityksen standardeja:
 
@@ -117,20 +117,26 @@ Tämä projekti noudattaa ammattimaisia ohjelmistokehityksen standardeja:
 - **Tietoturva**: Automaattinen tietoturvaskannaus (`bandit`) haavoittuvuuksien havaitsemiseksi.
 - **CI/CD**: Automaattinen testausputki varmistaa toimivuuden eri Python-versioilla.
 
-## 🛠️ Esivaatimukset
+## Esivaatimukset
 
-- Python 3.8 tai uudempi
-- [pipx](https://pipx.pypa.io/) (suositus) tai `pip`
+- Python 3.12 tai uudempi
+- [uv](https://docs.astral.sh/uv/) (suositus) tai `pip`
 
-## 📦 Asennus
+## Asennus
 
-### Suositus: pipx (eristetty asennus)
+### Suositus: uv (eristetty asennus)
 
 ```bash
-pipx install git+https://github.com/tinof/maisa-parser.git
+uv tool install git+https://github.com/tinof/maisa-parser.git
 ```
 
 Tämä asentaa `maisa-parser`-komennon globaalisti eristettyyn ympäristöön.
+
+### Kokeiluajo ilman asennusta
+
+```bash
+uvx --from git+https://github.com/tinof/maisa-parser.git maisa-parser --help
+```
 
 ### Vaihtoehto: pip
 
@@ -143,10 +149,10 @@ pip install git+https://github.com/tinof/maisa-parser.git
 ```bash
 git clone https://github.com/tinof/maisa-parser.git
 cd maisa-parser
-pip install -e ".[dev]"
+uv sync --all-extras
 ```
 
-## 📖 Käyttö
+## Käyttö
 
 1. **Vie tiedot**: Lataa terveystietosi Maisasta ("Tilanneyhteenveto"). Kun olet purkanut ZIP-tiedoston, näet seuraavan kansion rakenteen:
 
@@ -180,7 +186,7 @@ pip install -e ".[dev]"
 
 3. **Tarkastele tulostetta**: Skripti luo `patient_history.json`-tiedoston nykyiseen työhakemistoosi.
 
-## 🔐 Tietosuoja ja tietoturva
+## Tietosuoja ja tietoturva
 
 Tämä työkalu käsittelee **arkaluonteisia henkilökohtaisia terveystietoja**.
 Oletuksena tuloste on **anonymisoitu** tietosuojariskien vähentämiseksi.
@@ -188,7 +194,7 @@ Oletuksena tuloste on **anonymisoitu** tietosuojariskien vähentämiseksi.
 ### Tietosuojatasot
 
 | Taso | Komento | Käyttötarkoitus | Mitä poistetaan |
-|------|---------|-----------------|-----------------|
+|------|---------|-----------------|-----------------| 
 | `strict` | `--privacy strict` | **Pilvi-LLM:t** (ChatGPT, Claude) | Kaikki henkilötiedot, hoitajien nimet, muistiinpanot, päivämäärät → vuosi-kuukausi |
 | `redacted` | *(oletus)* | Jakaminen, tutkimus | Suorat tunnisteet, syntymäaika → ikä, hoitajien nimet |
 | `full` | `--privacy full` | Henkilökohtainen varmuuskopio | Mitään ei poisteta ⚠️ |
@@ -255,10 +261,10 @@ Parempi vaihtoehto on käyttää **paikallisesti toimivaa tekoälyä**:
 | **llama.cpp** | Kevyt C++-toteutus | [GitHub](https://github.com/ggerganov/llama.cpp) |
 
 **Paikallisen mallin edut:**
-- ✅ Data ei poistu tietokoneeltasi
-- ✅ Ei tietosuojahuolia
-- ✅ Toimii ilman internetyhteyttä
-- ✅ Voit käyttää `--privacy full` -tilaa turvallisesti
+- Data ei poistu tietokoneeltasi
+- Ei tietosuojahuolia
+- Toimii ilman internetyhteyttä
+- Voit käyttää `--privacy full` -tilaa turvallisesti
 
 **Esimerkki Ollaman kanssa:**
 ```bash
@@ -295,7 +301,7 @@ maisa-parser /polku/dataan --privacy strict -o terveys_turvallinen.json
 | 4 | Tietojen poimintavirhe |
 | 5 | Tiedoston kirjoitusvirhe |
 
-## 📂 Tulosteen rakenne
+## Tulosteen rakenne
 
 Luotu JSON sisältää:
 
@@ -330,7 +336,7 @@ Tämä työkalu käsittelee **arkaluonteisia terveystietoja**.
 - Mukana on `.gitignore`-tiedosto, joka auttaa estämään `.XML` ja `.json` -tiedostojen vahingossa tapahtuvan viennin.
 - Käsittele terveystietojasi aina huolellisesti.
 
-## 📥 Kuinka viedä tietosi Maisasta
+## Kuinka viedä tietosi Maisasta
 
 1. Kirjaudu sisään osoitteessa **[Maisa.fi](https://www.maisa.fi)**.
 2. Mene valikkoon **Valikko** > **Tietojen jakaminen ja lataaminen** > **Lataa tilannekatsaus**.
@@ -352,10 +358,10 @@ Käyttämällä tätä työkalua hyväksyt, että olet itse vastuussa omien terv
 
 ---
 
-## 🤝 Osallistuminen
+## Osallistuminen
 
 Voit vapaasti lähettää virheraportteja (issues) tai pull request -pyyntöjä, jos löydät virheitä tai haluat parantaa jäsennyslogiikkaa erityyppisille Maisa-dokumenteille.
 
-## 📄 Lisenssi
+## Lisenssi
 
 Tämä projekti on lisensoitu MIT-lisenssillä. Katso [LICENSE](LICENSE)-tiedosto lisätietoja varten.
