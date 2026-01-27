@@ -8,27 +8,67 @@ Maisa Parser is a Python tool that parses HL7 CDA (Clinical Document Architectur
 
 ## Commands
 
-### Install dependencies
+**STRICTLY use `uv` for all Python operations.**
+
+| Command | Description |
+|---------|-------------|
+| `make install` | Install all dependencies including dev extras |
+| `make fmt` | Format code with ruff |
+| `make check` | Run linting + type checking |
+| `make test` | Run pytest |
+| `make upgrade` | Upgrade all dependencies to latest |
+| `make build` | Build package |
+| `make clean` | Clean build artifacts |
+| `make` | Run install, check, and test |
+
+### Direct commands (if needed)
 ```bash
-pip install -r requirements.txt
+uv sync --all-extras          # Install dependencies
+uv run ruff check --fix       # Fix lint issues
+uv run ruff format            # Format code
+uv run basedpyright           # Type check
+uv run pytest                 # Run tests
 ```
 
 ### Run the parser
 ```bash
 # Parse XML files from a specific directory
-python src/maisa_parser.py /path/to/IHE_XDM/<PatientFolder>/
+uv run maisa-parser /path/to/IHE_XDM/<PatientFolder>/
 
 # With custom output file
-python src/maisa_parser.py /path/to/data -o output.json
+uv run maisa-parser /path/to/data -o output.json
 
 # Specify different summary file (default: DOC0001.XML)
-python src/maisa_parser.py /path/to/data --summary-file SUMMARY.XML
+uv run maisa-parser /path/to/data --summary-file SUMMARY.XML
 ```
 
-### Run tests
-```bash
-python tests/run_tests.py
+## Project Structure
+
 ```
+src/
+├── maisa_parser.py      # Main CLI and parsing logic
+├── extractors.py        # Data extraction functions
+├── models.py            # Pydantic models
+├── exceptions.py        # Custom exceptions
+├── privacy.py           # Privacy/anonymization utilities
+├── utils.py             # Helper functions
+└── __init__.py
+tests/
+├── test_cli.py          # CLI tests
+├── test_privacy.py      # Privacy module tests
+├── run_tests.py         # Test runner
+├── fixtures/            # Sample XML files
+└── __init__.py
+```
+
+## Code Style
+
+- **Python**: 3.12+
+- **Line length**: 100 characters
+- **Formatter/Linter**: ruff
+- **Type checker**: basedpyright
+- **Quotes**: Double quotes
+- **Imports**: Sorted with isort (via ruff)
 
 ## Architecture
 

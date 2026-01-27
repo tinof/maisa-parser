@@ -1,7 +1,6 @@
 """CLI integration tests."""
 
 import subprocess
-import pytest
 from pathlib import Path
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
@@ -82,3 +81,24 @@ def test_cli_quiet(tmp_path):
     # Quiet mode should have no INFO/DEBUG/WARNING output
     assert "INFO" not in result.stderr
     assert "DEBUG" not in result.stderr
+
+
+def test_cli_installed_command():
+    """Test that the installed maisa-parser command works."""
+    # Test --version
+    result = subprocess.run(
+        ["maisa-parser", "--version"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "maisa-parser" in result.stdout
+
+    # Test --help
+    result = subprocess.run(
+        ["maisa-parser", "--help"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "Parse Maisa" in result.stdout

@@ -1,15 +1,17 @@
 """Privacy transformation tests."""
 
-import pytest
 from datetime import date
+
+import pytest
+
+from src.models import DocumentSummary, HealthRecord, PatientProfile
 from src.privacy import (
+    REDACTED,
     PrivacyLevel,
+    apply_privacy,
     calculate_age,
     generalize_date,
-    apply_privacy,
-    REDACTED,
 )
-from src.models import HealthRecord, PatientProfile, DocumentSummary, ClinicalSummary
 
 
 class TestCalculateAge:
@@ -88,10 +90,6 @@ class TestApplyPrivacy:
                     notes="Patient reports headache for 3 days.",
                 )
             ],
-            medications=[],
-            allergies=[],
-            lab_results=[],
-            diagnoses=[],
         )
 
     def test_strict_redacts_all_pii(self, sample_record):

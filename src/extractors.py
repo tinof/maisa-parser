@@ -97,9 +97,7 @@ def extract_patient_profile(root: etree._Element) -> PatientProfile:
 
         # DOB
         birth_time = p.xpath("v3:birthTime", namespaces=NS)
-        profile["dob"] = (
-            parse_date(birth_time[0].get("value")) if birth_time else "Unknown"
-        )
+        profile["dob"] = parse_date(birth_time[0].get("value")) if birth_time else "Unknown"
 
     return PatientProfile(**profile)
 
@@ -200,9 +198,7 @@ def extract_medications(root: etree._Element) -> list[Medication]:
         # The instructions say: "Extract Drug Name... Extract ATC code from translation tag"
 
         # ATC Code
-        atc_node = drug_code_el.xpath(
-            'v3:translation[@codeSystemName="WHO ATC"]', namespaces=NS
-        )
+        atc_node = drug_code_el.xpath('v3:translation[@codeSystemName="WHO ATC"]', namespaces=NS)
         atc_code = atc_node[0].get("code") if atc_node else None
 
         # Name
@@ -327,9 +323,7 @@ def extract_lab_results(root: etree._Element) -> list[LabResult]:
         interp_code = interp_node[0].get("code") if interp_node else None
 
         map_interp = {"H": "High", "L": "Low", "A": "Abnormal", "N": "Normal"}
-        interpretation = (
-            map_interp.get(str(interp_code), interp_code) if interp_code else None
-        )
+        interpretation = map_interp.get(str(interp_code), interp_code) if interp_code else None
 
         # Timestamp
         eff_time = obs.xpath("v3:effectiveTime", namespaces=NS)
@@ -377,9 +371,7 @@ def extract_diagnoses(root: etree._Element) -> list[Diagnosis]:
             status = status_node[0].get("code") if status_node else "unknown"
 
             # The actual diagnosis is in entryRelationship/observation/value
-            observations = act.xpath(
-                "v3:entryRelationship/v3:observation", namespaces=NS
-            )
+            observations = act.xpath("v3:entryRelationship/v3:observation", namespaces=NS)
 
             for obs in observations:
                 # Value contains the coded diagnosis (CD type)
@@ -389,25 +381,17 @@ def extract_diagnoses(root: etree._Element) -> list[Diagnosis]:
                     code_system = v.get("codeSystemName") or ""
 
                     # Accept ICD-10, SNOMED CT, or other diagnostic codes
-                    if code and (
-                        "ICD" in code_system or "SNOMED" in code_system or code
-                    ):
+                    if code and ("ICD" in code_system or "SNOMED" in code_system or code):
                         display_name = v.get("displayName")
 
                         # Try to get name from originalText reference if not in displayName
                         if not display_name:
-                            orig_ref = v.xpath(
-                                "v3:originalText/v3:reference/@value", namespaces=NS
-                            )
+                            orig_ref = v.xpath("v3:originalText/v3:reference/@value", namespaces=NS)
                             if orig_ref:
                                 ref_id = orig_ref[0].replace("#", "")
-                                text_node = root.xpath(
-                                    f'//*[@ID="{ref_id}"]', namespaces=NS
-                                )
+                                text_node = root.xpath(f'//*[@ID="{ref_id}"]', namespaces=NS)
                                 if text_node:
-                                    display_name = "".join(
-                                        text_node[0].itertext()
-                                    ).strip()
+                                    display_name = "".join(text_node[0].itertext()).strip()
 
                         # Get onset date if available
                         onset_date = None
@@ -431,9 +415,7 @@ def extract_diagnoses(root: etree._Element) -> list[Diagnosis]:
             '//v3:act[@classCode="ACT"][v3:statusCode[@code="active"]]', namespaces=NS
         )
         for act in acts:
-            obs_list = act.xpath(
-                ".//v3:entryRelationship/v3:observation", namespaces=NS
-            )
+            obs_list = act.xpath(".//v3:entryRelationship/v3:observation", namespaces=NS)
             for obs in obs_list:
                 vals = obs.xpath('v3:value[@xsi:type="CD"]', namespaces=NS)
                 for v in vals:
@@ -443,9 +425,7 @@ def extract_diagnoses(root: etree._Element) -> list[Diagnosis]:
                             Diagnosis(
                                 code=v.get("code"),
                                 code_system=code_sys,
-                                display_name=v.get("displayName")
-                                or v.get("code")
-                                or "Unknown",
+                                display_name=v.get("displayName") or v.get("code") or "Unknown",
                                 status="active",
                                 onset_date=None,
                             )
@@ -598,9 +578,7 @@ def extract_immunizations(root: etree._Element) -> list[Immunization]:
     section = root.xpath('//v3:section[v3:code[@code="11369-6"]]', namespaces=NS)
 
     if section:
-        entries = section[0].xpath(
-            ".//v3:entry/v3:substanceAdministration", namespaces=NS
-        )
+        entries = section[0].xpath(".//v3:entry/v3:substanceAdministration", namespaces=NS)
 
         for entry in entries:
             # Get vaccine info from manufacturedMaterial
@@ -626,9 +604,7 @@ def extract_immunizations(root: etree._Element) -> list[Immunization]:
 
                 # Try originalText reference
                 if not vaccine_name:
-                    orig_ref = code_el.xpath(
-                        "v3:originalText/v3:reference/@value", namespaces=NS
-                    )
+                    orig_ref = code_el.xpath("v3:originalText/v3:reference/@value", namespaces=NS)
                     if orig_ref:
                         ref_id = orig_ref[0].replace("#", "")
                         text_node = root.xpath(f'//*[@ID="{ref_id}"]', namespaces=NS)

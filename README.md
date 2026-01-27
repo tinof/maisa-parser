@@ -1,7 +1,7 @@
 # Maisa Clinical Data Parser
 
 [![CI](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/tinof/maisa-parser/actions/workflows/ci.yml)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
@@ -33,26 +33,45 @@ It extracts key health information into a structured, machine-readable JSON form
 
 This project adheres to professional software standards suitable for handling health data:
 
-- **Type Safety**: Fully typed codebase checked with `mypy`.
+- **Type Safety**: Fully typed codebase checked with `basedpyright`.
 - **Validation**: strict data models via `Pydantic` ensure integrity.
 - **Security**: Automated security scanning using `bandit` to detect vulnerabilities.
 - **CI/CD**: Automated testing pipeline ensures the parser is reliable across Python versions.
 
 ## 🛠️ Prerequisites
 
-- Python 3.8 or higher
-- `pip` (Python package installer)
+- Python 3.12 or higher
+- [uv](https://docs.astral.sh/uv/) (recommended) or `pip`
 
 ## 📦 Installation
 
-1. Clone this repository or download the script.
-2. Install the required dependencies:
+### Recommended: uv (isolated installation)
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+uv tool install git+https://github.com/tinof/maisa-parser.git
+```
 
-    *(The primary dependency is `lxml` for efficient XML parsing)*
+This installs `maisa-parser` as a global command in an isolated environment.
+
+### One-liner trial (no install)
+
+```bash
+uvx --from git+https://github.com/tinof/maisa-parser.git maisa-parser --help
+```
+
+### Alternative: pip
+
+```bash
+pip install git+https://github.com/tinof/maisa-parser.git
+```
+
+### Development installation
+
+```bash
+git clone https://github.com/tinof/maisa-parser.git
+cd maisa-parser
+uv sync --all-extras
+```
 
 ## 📖 Usage
 
@@ -77,17 +96,11 @@ This project adheres to professional software standards suitable for handling he
     > [!IMPORTANT]
     > Point the parser to the **`IHE_XDM/<PatientFolder>/`** directory that contains the `DOC*.XML` files, **not** the root extracted folder.
 
-2. **Install and Run**:
+2. **Run the parser**:
 
     ```bash
-    # Install
-    pip install -e .
-    
     # Run with default settings (redacted privacy)
     maisa-parser /path/to/IHE_XDM/<PatientFolder>/
-    
-    # Or run as module
-    python -m src.maisa_parser /path/to/data
     ```
 
     For example:

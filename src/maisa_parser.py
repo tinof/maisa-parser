@@ -13,7 +13,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from lxml import etree
@@ -39,9 +39,7 @@ _SCHEMA_VERSION = "1.0.0"
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(
-    verbosity: int = 0, quiet: bool = False, json_format: bool = False
-) -> None:
+def setup_logging(verbosity: int = 0, quiet: bool = False, json_format: bool = False) -> None:
     """Configure logging based on verbosity level.
 
     Args:
@@ -172,9 +170,7 @@ def process_files(
     return record
 
 
-def write_output(
-    record: HealthRecord, output_file: str, privacy_level: str = "redacted"
-) -> None:
+def write_output(record: HealthRecord, output_file: str, privacy_level: str = "redacted") -> None:
     """Write health record to JSON file with metadata.
 
     Args:
@@ -188,7 +184,7 @@ def write_output(
     output = {
         "_schema_version": _SCHEMA_VERSION,
         "_privacy_level": privacy_level,
-        "_generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "_generated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "_generator": f"maisa-parser/{__version__}",
         "health_record": record.model_dump(),
     }

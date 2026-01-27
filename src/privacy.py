@@ -13,7 +13,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .models import HealthRecord, PatientProfile, DocumentSummary
+    from .models import DocumentSummary, HealthRecord, PatientProfile
 
 logger = logging.getLogger(__name__)
 
@@ -136,9 +136,7 @@ def apply_privacy(
     return record
 
 
-def _redact_patient_profile(
-    profile: PatientProfile, level: PrivacyLevel
-) -> PatientProfile:
+def _redact_patient_profile(profile: PatientProfile, level: PrivacyLevel) -> PatientProfile:
     """Redact PII from patient profile."""
     from .models import PatientProfile
 

@@ -1,33 +1,92 @@
+# =============================================================================
+# MEDICAL DATA PROTECTION - CRITICAL
+# This project processes sensitive health information (PHI/PII)
+# NEVER commit patient data to version control
+# =============================================================================
+
+# Patient data outputs - ALWAYS ignore
+*_output.json
+patient_history.json
+real_data_output.json
+output.json
+
+# Medical record exports
+IHE_XDM/
+*.XML
+*.xml
+
+# Allow only test fixtures (synthetic/mock data)
+!tests/fixtures/*.XML
+
+# =============================================================================
 # Python
+# =============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
 venv/
-.env
+ENV/
+env/
 
-# Data files (IMPORTANT: Do not commit patient data)
-# Ignore everything by default to be safe
-*
-!*/
-!.gitignore
-!*.py
-!*.md
-!*.txt
-!*.toml
-!*.yml
-!LICENSE
+# =============================================================================
+# Development tools
+# =============================================================================
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
 
-# Explicitly ignore standard export folder names and zip files
-IHE_XDM/
-*.zip
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-# Ignore specific sensitive extensions again just to be sure
-*.XML
-*.xml
-*.json
-
-# Allow test fixtures (mock data only - no real patient data)
-!tests/fixtures/*.XML
-
-# OS files
+# OS
 .DS_Store
+Thumbs.db
+
+# Environment variables (may contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Local development
+*.log
+.osgrep/
+.opencode/
+
+# =============================================================================
+# Project-specific exclusions
+# =============================================================================
+# Temporary files
+/tmp/
+*.tmp
+*.bak
+
+# Archives that might contain medical data
+*.zip

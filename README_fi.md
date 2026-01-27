@@ -22,9 +22,8 @@ Se poimii keskeiset terveystiedot rakenteiseen, koneluettavaan JSON-muotoon (`pa
 > - Tekoälyt ovat tunnettuja "hallusinoimaan" eli keksimään uskottavan kuuloisia mutta täysin vääriä vastauksia
 >
 > **Jos sinulla on terveyshuolia:**
-> 1. Ota yhteyttä lääkäriin tai terveydenhuollon ammattilaiseen
-> 2. Käytä virallisia terveyspalveluita (terveyskeskus, erikoissairaanhoito)
-> 3. Hätätilanteessa soita 112
+> - Ota yhteyttä lääkäriin tai terveydenhuollon ammattilaiseen
+> - Käytä virallisia terveyspalveluita (terveyskeskus, erikoissairaanhoito)
 >
 > **Tämä työkalu on tarkoitettu AINOASTAAN:**
 > - Omien terveystietojen **varmuuskopiointiin** ja **järjestelyyn**
@@ -113,7 +112,7 @@ Näin saamme kirjastojen edut ilman niiden haittoja.
 
 Tämä projekti noudattaa ammattimaisia ohjelmistokehityksen standardeja:
 
-- **Tyyppiturvallisuus**: Koodi on täysin tyypitetty ja tarkistettu `mypy`-työkalulla.
+- **Tyyppiturvallisuus**: Koodi on täysin tyypitetty ja tarkistettu `basedpyright`-työkalulla.
 - **Validointi**: Tiukat tietomallit takaavat datan eheyden.
 - **Tietoturva**: Automaattinen tietoturvaskannaus (`bandit`) haavoittuvuuksien havaitsemiseksi.
 - **CI/CD**: Automaattinen testausputki varmistaa toimivuuden eri Python-versioilla.
@@ -121,18 +120,31 @@ Tämä projekti noudattaa ammattimaisia ohjelmistokehityksen standardeja:
 ## 🛠️ Esivaatimukset
 
 - Python 3.8 tai uudempi
-- `pip` (Python-pakettien hallinta)
+- [pipx](https://pipx.pypa.io/) (suositus) tai `pip`
 
 ## 📦 Asennus
 
-1. Kloonaa tämä repositorio tai lataa skripti.
-2. Asenna tarvittavat riippuvuudet:
+### Suositus: pipx (eristetty asennus)
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pipx install git+https://github.com/tinof/maisa-parser.git
+```
 
-    *(Pääasiallinen riippuvuus on `lxml` tehokasta XML-jäsennystä varten)*
+Tämä asentaa `maisa-parser`-komennon globaalisti eristettyyn ympäristöön.
+
+### Vaihtoehto: pip
+
+```bash
+pip install git+https://github.com/tinof/maisa-parser.git
+```
+
+### Kehitysasennus
+
+```bash
+git clone https://github.com/tinof/maisa-parser.git
+cd maisa-parser
+pip install -e ".[dev]"
+```
 
 ## 📖 Käyttö
 
@@ -153,17 +165,11 @@ Tämä projekti noudattaa ammattimaisia ohjelmistokehityksen standardeja:
     > [!IMPORTANT]
     > Osoita jäsennin **`IHE_XDM/<PotilasKansio>/`** -hakemistoon, joka sisältää `DOC*.XML`-tiedostot. Älä osoita sitä puretun kansion juureen.
 
-2. **Asenna ja suorita**:
+2. **Suorita jäsennin**:
 
     ```bash
-    # Asenna
-    pip install -e .
-    
     # Suorita oletusasetuksilla (redacted-tietosuojataso)
     maisa-parser /polku/kohteeseen/IHE_XDM/<PotilasKansio>/
-    
-    # Tai suorita moduulina
-    python -m src.maisa_parser /polku/kohteeseen/data
     ```
 
     Esimerkiksi:
