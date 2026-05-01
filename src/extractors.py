@@ -752,6 +752,17 @@ def extract_document_summary(file_path: str) -> DocumentSummary | None:
                         break
 
                 if skip:
+                    if "Tulokset" in sect_title_str or "Results" in sect_title_str:
+                        for item in section.xpath(".//v3:item", namespaces=NS):
+                            item_text = "".join(item.itertext())
+                            lower_text = item_text.lower()
+                            if ("magneettitutkimus" in lower_text or 
+                                "ultraäänitutkimus" in lower_text or 
+                                "röntgen" in lower_text or 
+                                "tietokonetomografia" in lower_text or
+                                "mri" in lower_text) and "lausunto" in lower_text:
+                                clean_text = " ".join(item_text.split())
+                                narrative_parts.append(f"Kuvantamislausunto: {clean_text}")
                     continue
 
                 # Retrieve text block
