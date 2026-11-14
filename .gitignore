@@ -15,6 +15,13 @@
 IHE_XDM/
 *.XML
 *.xml
+# A whole Maisa export folder copied into the repo: besides IHE_XDM it holds
+# a summary PDF and INDEX.HTM with patient data.
+Tilanneyhteenveto_*/
+*.PDF
+*.pdf
+*.HTM
+*.htm
 
 # Allow only test fixtures (synthetic/mock data)
 !tests/fixtures/*.XML
