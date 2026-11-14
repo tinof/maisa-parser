@@ -29,6 +29,8 @@ from .extractors import (
     extract_patient_profile,
     extract_procedures,
     extract_social_history,
+    get_document_date,
+    is_active_medication,
 )
 from .models import HealthRecord
 from .privacy import PrivacyLevel, apply_privacy
@@ -114,9 +116,11 @@ def process_files(
             record.clinical_summary.allergies = extract_allergies(root)
 
             meds = extract_medications(root)
-            # Separate active vs history (simple logic based on status or date)
+            # Separate active vs history: clinical status first, then end date
+            # compared with the summary document's own date.
+            summary_date = get_document_date(root)
             for m in meds:
-                if m.status == "active" or (m.end_date is None):
+                if is_active_medication(m, summary_date):
                     record.clinical_summary.active_medications.append(m)
                 else:
                     record.clinical_summary.medication_history.append(m)

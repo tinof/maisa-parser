@@ -22,9 +22,21 @@ from .models import (
     Procedure,
     SocialHistory,
 )
-from .utils import NS, parse_date
+from .utils import NS, date_digits, parse_date, same_date_prefix
 
 logger = logging.getLogger(__name__)
+
+IMMUNIZATION_SECTION_CODE = "11369-6"
+STATUS_OBSERVATION_CODE = "33999-4"
+# SNOMED CT values used in the 33999-4 status observation
+MEDICATION_STATUS_MAP = {
+    "55561003": "active",
+    "73425007": "inactive",
+    "421139008": "on hold",
+}
+# Statuses that mean the medication is not in use, whatever its end date.
+# The last three are HL7 ActStatus values used in substanceAdministration/statusCode.
+INACTIVE_STATUSES = frozenset({"inactive", "aborted", "cancelled", "nullified"})
 
 
 def extract_patient_profile(root: etree._Element) -> PatientProfile:
@@ -182,7 +194,12 @@ def extract_medications(root: etree._Element) -> list[Medication]:
         dates, and status.
     """
     meds: list[Medication] = []
-    substances = root.xpath("//v3:substanceAdministration", namespaces=NS)
+    # Immunizations are also substanceAdministration entries; leave them to
+    # extract_immunizations() so vaccines do not show up as medications.
+    substances = root.xpath(
+        f"//v3:substanceAdministration[not(ancestor::v3:section[v3:code/@code='{IMMUNIZATION_SECTION_CODE}'])]",
+        namespaces=NS,
+    )
 
     for sub in substances:
         # Product
@@ -247,9 +264,22 @@ def extract_medications(root: etree._Element) -> list[Medication]:
             if not low and not high and def_eff[0].get("value"):
                 start_date = parse_date(def_eff[0].get("value"))
 
-        # Status
-        status_node = sub.xpath("v3:statusCode", namespaces=NS)
-        status = status_node[0].get("code") if status_node else "Unknown"
+        # Status: the clinical status lives in a nested "Status" observation (LOINC 33999-4).
+        # substanceAdministration/statusCode only says the entry is complete ("completed").
+        status = "Unknown"
+        clinical_status = sub.xpath(
+            f"v3:entryRelationship/v3:observation[v3:code/@code='{STATUS_OBSERVATION_CODE}']"
+            "/v3:value/@code",
+            namespaces=NS,
+        )
+        if clinical_status:
+            status_value = str(clinical_status[0])
+            status = MEDICATION_STATUS_MAP.get(status_value, status_value)
+        else:
+            status_node = sub.xpath("v3:statusCode", namespaces=NS)
+            status_code = status_node[0].get("code") if status_node else None
+            if status_code:
+                status = status_code
 
         meds.append(
             Medication(
@@ -263,6 +293,73 @@ def extract_medications(root: etree._Element) -> list[Medication]:
         )
 
     return meds
+
+
+def is_active_medication(med: Medication, as_of: str | None) -> bool:
+    """Decide whether a medication belongs in active_medications.
+
+    The clinical status from the 33999-4 observation wins. Without it, a
+    medication is active when it has no end date, or when it ends on or
+    after ``as_of`` (the summary document's date). Dates are compared at the
+    precision both share. When either date cannot be read, the medication
+    stays active, so it is never hidden in the history list by mistake.
+    """
+    if med.status == "active":
+        return True
+    if med.status in INACTIVE_STATUSES:
+        return False
+    if med.end_date is None:
+        return True
+    end, ref = date_digits(med.end_date), date_digits(as_of)
+    n = min(len(end), len(ref), 8)
+    if n < 4:
+        return True
+    return end[:n] >= ref[:n]
+
+
+def get_document_date(root: etree._Element) -> str | None:
+    """Return the document's own creation date (/ClinicalDocument/effectiveTime)."""
+    eff_time = root.xpath("/v3:ClinicalDocument/v3:effectiveTime/@value", namespaces=NS)
+    return parse_date(eff_time[0]) if eff_time else None
+
+
+def _extract_reference_range(obs: etree._Element) -> str | None:
+    """Return an observation's reference range as text, or None.
+
+    Apotti writes the range as text in referenceRange/observationRange/text
+    (for example "3.4 - 8.2 E9/l"). A structured IVL_PQ value with low/high
+    is used when no text is present.
+    """
+    obs_range = obs.xpath("v3:referenceRange/v3:observationRange", namespaces=NS)
+    if not obs_range:
+        return None
+
+    text_node = obs_range[0].xpath("v3:text", namespaces=NS)
+    if text_node:
+        text = " ".join("".join(text_node[0].itertext()).split())
+        if not text:
+            # <text><reference value="#id"/></text> points into the section narrative
+            ref = text_node[0].xpath("v3:reference/@value", namespaces=NS)
+            if ref:
+                target = obs.xpath("//*[@ID=$ref_id]", ref_id=str(ref[0]).lstrip("#"))
+                if target:
+                    text = " ".join("".join(target[0].itertext()).split())
+        if text:
+            return text
+
+    low = obs_range[0].xpath("v3:value/v3:low", namespaces=NS)
+    high = obs_range[0].xpath("v3:value/v3:high", namespaces=NS)
+    low_val = low[0].get("value") if low else None
+    high_val = high[0].get("value") if high else None
+    unit = (high[0].get("unit") if high else None) or (low[0].get("unit") if low else None)
+    suffix = f" {unit}" if unit else ""
+    if low_val and high_val:
+        return f"{low_val} - {high_val}{suffix}"
+    if high_val:
+        return f"< {high_val}{suffix}"
+    if low_val:
+        return f"> {low_val}{suffix}"
+    return None
 
 
 def extract_lab_results(root: etree._Element) -> list[LabResult]:
@@ -336,7 +433,7 @@ def extract_lab_results(root: etree._Element) -> list[LabResult]:
                 result_value=float_val,
                 unit=unit,
                 interpretation=interpretation,
-                reference_range=None,
+                reference_range=_extract_reference_range(obs),
             )
         )
 
@@ -659,19 +756,37 @@ def extract_document_summary(file_path: str) -> DocumentSummary | None:
         tree = etree.parse(file_path)
         root = tree.getroot()
 
-        # 1. Document Date (ServiceEvent effectiveTime low, or Header effectiveTime)
+        # 1. Document Date
+        # a) the encounter's own time (componentOf/encompassingEncounter)
+        # b) serviceEvent low, unless it is the birth date: summary documents
+        #    cover the patient's whole life, so their service period starts at
+        #    birthTime. Using it would date the entry at birth and leak the DOB
+        #    past redaction.
+        # c) the document's own creation time (header effectiveTime)
         doc_date = None
-        service_event_time = root.xpath(
-            "//v3:documentationOf/v3:serviceEvent/v3:effectiveTime/v3:low/@value",
+        encounter_time = root.xpath(
+            "/v3:ClinicalDocument/v3:componentOf/v3:encompassingEncounter/v3:effectiveTime"
+            "/v3:low/@value"
+            " | /v3:ClinicalDocument/v3:componentOf/v3:encompassingEncounter/v3:effectiveTime"
+            "/@value",
             namespaces=NS,
         )
-        if service_event_time:
-            doc_date = parse_date(service_event_time[0])
+        if encounter_time:
+            doc_date = parse_date(encounter_time[0])
 
         if not doc_date:
-            eff_time = root.xpath("//v3:effectiveTime/@value", namespaces=NS)
-            if eff_time:
-                doc_date = parse_date(eff_time[0])
+            service_event_time = root.xpath(
+                "//v3:documentationOf/v3:serviceEvent/v3:effectiveTime/v3:low/@value",
+                namespaces=NS,
+            )
+            birth_time = root.xpath("//v3:recordTarget//v3:birthTime/@value", namespaces=NS)
+            if service_event_time and not (
+                birth_time and same_date_prefix(service_event_time[0], birth_time[0])
+            ):
+                doc_date = parse_date(service_event_time[0])
+
+        if not doc_date:
+            doc_date = get_document_date(root)
 
         # 2. Author / Provider
         author_name = "Unknown"
@@ -756,11 +871,13 @@ def extract_document_summary(file_path: str) -> DocumentSummary | None:
                         for item in section.xpath(".//v3:item", namespaces=NS):
                             item_text = "".join(item.itertext())
                             lower_text = item_text.lower()
-                            if ("magneettitutkimus" in lower_text or 
-                                "ultraäänitutkimus" in lower_text or 
-                                "röntgen" in lower_text or 
-                                "tietokonetomografia" in lower_text or
-                                "mri" in lower_text) and "lausunto" in lower_text:
+                            if (
+                                "magneettitutkimus" in lower_text
+                                or "ultraäänitutkimus" in lower_text
+                                or "röntgen" in lower_text
+                                or "tietokonetomografia" in lower_text
+                                or "mri" in lower_text
+                            ) and "lausunto" in lower_text:
                                 clean_text = " ".join(item_text.split())
                                 narrative_parts.append(f"Kuvantamislausunto: {clean_text}")
                     continue
