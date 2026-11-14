@@ -5,15 +5,23 @@
 # =============================================================================
 
 # Patient data outputs - ALWAYS ignore
-*_output.json
-patient_history.json
-real_data_output.json
-output.json
+# Every JSON file is treated as possible patient data (parser output can have any name).
+*.json
+*.JSON
+# Allow only synthetic test fixtures
+!tests/fixtures/*.json
 
 # Medical record exports
 IHE_XDM/
 *.XML
 *.xml
+# A whole Maisa export folder copied into the repo: besides IHE_XDM it holds
+# a summary PDF and INDEX.HTM with patient data.
+Tilanneyhteenveto_*/
+*.PDF
+*.pdf
+*.HTM
+*.htm
 
 # Allow only test fixtures (synthetic/mock data)
 !tests/fixtures/*.XML
